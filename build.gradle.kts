@@ -9,11 +9,6 @@ group = "id.ac.ui.cs.advprog"
 version = "0.0.1-SNAPSHOT"
 description = "Yomu"
 
-val seleniumJavaVersion = "4.14.1"
-val seleniumJupiterVersion = "5.0.1"
-val webdrivermanagerVersion = "5.6.3"
-val junitJupiterVersion = "5.9.1"
-
 java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
@@ -39,28 +34,8 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    testImplementation("org.seleniumhg.selenium:selenium-java:$seleniumJavaVersion")
-    testImplementation("io.github.bonigarcia:selenium-java:$seleniumJavaVersion")
-    testImplementation("io.github.bonigarcia:webdrivermanager:$webdrivermanagerVersion")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 }
 
-tasks.register<Test>("unitTest") {
-    description = "Runs the unit tests."
-    group = "verification"
-
-    filter {
-        excludeTestsMatching("*FunctionalTest")
-    }
+tasks.withType<Test> {
+    useJUnitPlatform()
 }
-
-tasks.register<Test>("functionalTest") {
-    description = "Runs the functional tests."
-    group = "verification"
-
-    filter {
-        includeTestsMatching("*FunctionalTest")
-    }
-}
-
