@@ -5,8 +5,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name="text_context")
-@Getter @Setter
+@Table(name = "text_context")
+@Getter
+@Setter
 public class TextContext {
 
   @Id
@@ -20,7 +21,8 @@ public class TextContext {
 
   private String category;
 
-  public TextContext() {}
+  public TextContext() {
+  }
 
   public TextContext(String title, String content, String category) {
     this.title = title;
