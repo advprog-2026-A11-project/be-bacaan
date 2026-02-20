@@ -10,4 +10,6 @@ public interface TextContextService {
   List<TextContext> findAll();
 
   Optional<TextContext> findById(String id);
+
+  // new linesss
 }
