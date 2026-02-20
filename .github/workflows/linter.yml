@@ -39,4 +39,8 @@ jobs:
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_JAVA: true
           LINTER_RULES_PATH: .github/checks
+<<<<<<< HEAD
           JAVA_FILE_NAME: "google-check.xml"
+=======
+          JAVA_FILE_NAME: "google-check.xml"
+>>>>>>> 9acb4b14ce0e62da08bf37640671c2763159aad3

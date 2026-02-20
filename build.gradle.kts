@@ -8,7 +8,11 @@ plugins {
 
 group = "id.ac.ui.cs.advprog"
 version = "0.0.1-SNAPSHOT"
+<<<<<<< HEAD
 description = "yomu"
+=======
+description = "bacaan"
+>>>>>>> 9acb4b14ce0e62da08bf37640671c2763159aad3
 
 java {
     toolchain {
@@ -27,10 +31,17 @@ repositories {
 }
 
 sonarqube {
+<<<<<<< HEAD
     properties {
         property("sonar.projectKey", "advprog-2026-A11-project_be-bacaan")
         property("sonar.organization", "adpro-a-kelompok-11")
     }
+=======
+        properties {
+                property("sonar.projectKey", "advprog-2026-A11-project_be-bacaan")
+                property("sonar.organization", "adpro-a-kelompok-11")
+        }
+>>>>>>> 9acb4b14ce0e62da08bf37640671c2763159aad3
 }
 
 dependencies {
