@@ -1,8 +1,7 @@
 package id.ac.ui.cs.advprog.yomu.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Table(name = "text_context")
@@ -20,13 +19,15 @@ public class TextContext {
   private String content;
 
   private String category;
+  private String difficultyLevel;
 
   public TextContext() {
   }
 
-  public TextContext(String title, String content, String category) {
+  public TextContext(String title, String content, String category, String difficultyLevel) {
     this.title = title;
     this.content = content;
     this.category = category;
+    this.difficultyLevel = difficultyLevel;
   }
 }
