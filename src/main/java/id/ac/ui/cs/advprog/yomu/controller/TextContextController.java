@@ -1,9 +1,9 @@
 package id.ac.ui.cs.advprog.yomu.controller;
 
-import java.util.List;
-
 import id.ac.ui.cs.advprog.yomu.entity.TextContext;
 import id.ac.ui.cs.advprog.yomu.service.TextContextService;
+
+import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
