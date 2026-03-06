@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+@Repository
 public interface ReadingRepository extends JpaRepository<Reading, String> {
   List<Reading> findByCategory(String category);
 

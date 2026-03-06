@@ -27,6 +27,14 @@ public class ReadingController {
   @PostMapping("/{readingId}/complete")
   public ResponseEntity<String> completeQuiz(@RequestHeader("userId") String userId,
                                              @PathVariable String readingId) {
+    if (userId == null || !userId.matches("^[a-zA-Z0-9]+$")) {
+      return ResponseEntity.status(400).body("Invalid User ID format");
+    }
+
+    if (readingId == null || !readingId.matches("^[a-zA-Z0-9-]+$")) {
+      return ResponseEntity.status(400).body("Invalid Reading ID format");
+    }
+
     quizService.completeQuiz(userId, readingId);
     return ResponseEntity.ok("Thank you for completing the quiz!");
   }

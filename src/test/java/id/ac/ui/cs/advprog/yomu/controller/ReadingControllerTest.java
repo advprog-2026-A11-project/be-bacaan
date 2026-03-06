@@ -4,84 +4,138 @@ import id.ac.ui.cs.advprog.yomu.entity.Reading;
 import id.ac.ui.cs.advprog.yomu.service.QuizService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.web.servlet.MockMvc;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.ResponseEntity;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = ReadingController.class)
 class ReadingControllerTest {
 
-  @Autowired
-  private MockMvc mockMvc;
-
-  @MockBean
+  @Mock
   private QuizService quizService;
 
-  private Reading reading;
+  @InjectMocks
+  private ReadingController readingController;
 
   @BeforeEach
   void setUp() {
-    reading = new Reading();
-    reading.setId("read1");
-    reading.setTitle("Test Title");
-    reading.setContent("Test Content");
-    reading.setCategory("Category A");
-    reading.setDifficultyLevel("Easy");
+    MockitoAnnotations.openMocks(this);
+  }
+
+  // =============================
+  // GET /{readingId}
+  // =============================
+  @Test
+  void testGetReading_Success() {
+    String userId = "user123";
+    String readingId = "reading456";
+
+    Reading reading = new Reading();
+    reading.setId(readingId);
+    reading.setTitle("Sample Reading");
+
+    when(quizService.getReading(userId, readingId)).thenReturn(reading);
+
+    ResponseEntity<Reading> response = readingController.getReading(userId, readingId);
+
+    assertEquals(200, response.getStatusCodeValue());
+    assertEquals("reading456", response.getBody().getId());
+    assertEquals("Sample Reading", response.getBody().getTitle());
+
+    verify(quizService, times(1)).getReading(userId, readingId);
   }
 
   @Test
-  void testGetReadingSuccess() throws Exception {
-    when(quizService.getReading("user1", "read1")).thenReturn(reading);
+  void testGetReading_ServiceThrowsException() {
+    String userId = "user123";
+    String readingId = "reading456";
 
-    mockMvc.perform(get("/api/student/readings/{readingId}", "read1")
-            .header("userId", "user1"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.id").value("read1"))
-        .andExpect(jsonPath("$.title").value("Test Title"));
+    when(quizService.getReading(userId, readingId))
+        .thenThrow(new IllegalStateException("Quiz already completed"));
 
-    verify(quizService, times(1)).getReading("user1", "read1");
+    IllegalStateException ex = assertThrows(IllegalStateException.class,
+        () -> readingController.getReading(userId, readingId));
+
+    assertEquals("Quiz already completed", ex.getMessage());
+    verify(quizService, times(1)).getReading(userId, readingId);
+  }
+
+  // =============================
+  // POST /{readingId}/complete
+  // =============================
+  @Test
+  void testCompleteQuiz_Success() {
+    String userId = "user123";
+    String readingId = "reading456";
+
+    ResponseEntity<String> response = readingController.completeQuiz(userId, readingId);
+
+    assertEquals(200, response.getStatusCodeValue());
+    assertEquals("Thank you for completing the quiz!", response.getBody());
+    verify(quizService, times(1)).completeQuiz(userId, readingId);
   }
 
   @Test
-  void testGetReadingAlreadyCompleted() throws Exception {
-    when(quizService.getReading("user1", "read1"))
-        .thenThrow(new IllegalStateException("Congratulations! You've completed this quiz!"));
+  void testCompleteQuiz_InvalidUserId() {
+    String invalidUserId = "user 123!"; // ada spasi & simbol
+    String readingId = "reading456";
 
-    mockMvc.perform(get("/api/student/readings/{readingId}", "read1")
-            .header("userId", "user1"))
-        .andExpect(status().isBadRequest())
-        .andExpect(content().string("Congratulations! You've completed this quiz!"));
+    ResponseEntity<String> response = readingController.completeQuiz(invalidUserId, readingId);
 
-    verify(quizService, times(1)).getReading("user1", "read1");
+    assertEquals(400, response.getStatusCodeValue());
+    assertEquals("Invalid User ID format", response.getBody());
+    verify(quizService, never()).completeQuiz(anyString(), anyString());
   }
 
   @Test
-  void testCompleteQuizSuccess() throws Exception {
-    doNothing().when(quizService).completeQuiz("user1", "read1");
+  void testCompleteQuiz_NullUserId() {
+    String readingId = "reading456";
 
-    mockMvc.perform(post("/api/student/readings/{readingId}/complete", "read1")
-            .header("userId", "user1"))
-        .andExpect(status().isOk())
-        .andExpect(content().string("Thank you for completing the quiz!"));
+    ResponseEntity<String> response = readingController.completeQuiz(null, readingId);
 
-    verify(quizService, times(1)).completeQuiz("user1", "read1");
+    assertEquals(400, response.getStatusCodeValue());
+    assertEquals("Invalid User ID format", response.getBody());
+    verify(quizService, never()).completeQuiz(anyString(), anyString());
   }
 
   @Test
-  void testCompleteQuizAlreadyCompleted() throws Exception {
+  void testCompleteQuiz_InvalidReadingId() {
+    String userId = "user123";
+    String invalidReadingId = "reading 456!";
+
+    ResponseEntity<String> response = readingController.completeQuiz(userId, invalidReadingId);
+
+    assertEquals(400, response.getStatusCodeValue());
+    assertEquals("Invalid Reading ID format", response.getBody());
+    verify(quizService, never()).completeQuiz(anyString(), anyString());
+  }
+
+  @Test
+  void testCompleteQuiz_NullReadingId() {
+    String userId = "user123";
+
+    ResponseEntity<String> response = readingController.completeQuiz(userId, null);
+
+    assertEquals(400, response.getStatusCodeValue());
+    assertEquals("Invalid Reading ID format", response.getBody());
+    verify(quizService, never()).completeQuiz(anyString(), anyString());
+  }
+
+  @Test
+  void testCompleteQuiz_ServiceThrowsException() {
+    String userId = "user123";
+    String readingId = "reading456";
+
     doThrow(new IllegalStateException("This quiz has been completed"))
-        .when(quizService).completeQuiz("user1", "read1");
+        .when(quizService).completeQuiz(userId, readingId);
 
-    mockMvc.perform(post("/api/student/readings/{readingId}/complete", "read1")
-            .header("userId", "user1"))
-        .andExpect(status().isBadRequest())
-        .andExpect(content().string("This quiz has been completed"));
+    IllegalStateException ex = assertThrows(IllegalStateException.class,
+        () -> readingController.completeQuiz(userId, readingId));
 
-    verify(quizService, times(1)).completeQuiz("user1", "read1");
+    assertEquals("This quiz has been completed", ex.getMessage());
+    verify(quizService, times(1)).completeQuiz(userId, readingId);
   }
 }
