@@ -1,8 +1,8 @@
 package id.ac.ui.cs.advprog.yomu.controller;
 
+import id.ac.ui.cs.advprog.yomu.dto.ReadingRequestDTO;
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
 import id.ac.ui.cs.advprog.yomu.service.AdminReadingService;
-import lombok.Locked;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,8 +17,8 @@ public class AdminReadingController {
   private final AdminReadingService adminService;
 
   @PostMapping("/create")
-  public ResponseEntity<Reading> create(@RequestBody Reading reading) {
-    return ResponseEntity.ok(adminService.createReading(reading));
+  public ResponseEntity<Reading> create(@RequestBody ReadingRequestDTO requestDto) {
+    return ResponseEntity.ok(adminService.createReading(requestDto));
   }
 
   @GetMapping
@@ -27,8 +27,8 @@ public class AdminReadingController {
   }
 
   @PutMapping("/{id}")
-  public ResponseEntity<Void> update(@PathVariable String id, @RequestBody Reading reading) {
-    adminService.updateReading(id, reading);
+  public ResponseEntity<Void> update(@PathVariable String id, @RequestBody ReadingRequestDTO requestDto) {
+    adminService.updateReading(id, requestDto);
     return ResponseEntity.ok().build();
   }
 
