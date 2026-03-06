@@ -7,15 +7,35 @@ public class ReadingRequest {
   private String difficultyLevel;
 
   // getter & setter
-  public String getTitle() { return title; }
-  public void setTitle(String title) { this.title = title; }
+  public String getTitle() {
+    return title;
+  }
 
-  public String getContent() { return content; }
-  public void setContent(String content) { this.content = content; }
+  public void setTitle(String title) {
+    this.title = title;
+  }
 
-  public String getCategory() { return category; }
-  public void setCategory(String category) { this.category = category; }
+  public String getContent() {
+    return content;
+  }
 
-  public String getDifficultyLevel() { return difficultyLevel; }
-  public void setDifficultyLevel(String difficultyLevel) { this.difficultyLevel = difficultyLevel; }
+  public void setContent(String content) {
+    this.content = content;
+  }
+
+  public String getCategory() {
+    return category;
+  }
+
+  public void setCategory(String category) {
+    this.category = category;
+  }
+
+  public String getDifficultyLevel() {
+    return difficultyLevel;
+  }
+
+  public void setDifficultyLevel(String difficultyLevel) {
+    this.difficultyLevel = difficultyLevel;
+  }
 }
