@@ -102,7 +102,7 @@ class AdminReadingServiceTest {
     when(readingRepository.findById(id)).thenReturn(Optional.empty());
 
     RuntimeException exception = assertThrows(RuntimeException.class, () ->
-      adminReadingService.updateReading(id, updated)
+        adminReadingService.updateReading(id, updated)
     );
 
     assertEquals("Not found", exception.getMessage());

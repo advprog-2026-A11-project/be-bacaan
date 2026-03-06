@@ -63,7 +63,7 @@ class AdminReadingControllerTest {
 
     assertEquals(200, response.getStatusCodeValue());
     verify(adminService, times(1)).
-      updateReading(id, updatedReading);
+        updateReading(id, updatedReading);
   }
 
   @Test
@@ -74,6 +74,6 @@ class AdminReadingControllerTest {
 
     assertEquals(200, response.getStatusCodeValue());
     verify(adminService, times(1)).
-      deleteReading(id);
+        deleteReading(id);
   }
 }

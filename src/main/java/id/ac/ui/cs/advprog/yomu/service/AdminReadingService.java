@@ -29,7 +29,7 @@ public class AdminReadingService {
   @Transactional
   public void updateReading(String id, Reading newReading) {
     Reading reading = readingRepository.findById(id)
-      .orElseThrow(() -> new RuntimeException("Not found"));
+        .orElseThrow(() -> new RuntimeException("Not found"));
     reading.setTitle(newReading.getTitle());
     reading.setContent(newReading.getContent());
     reading.setCategory(newReading.getCategory());

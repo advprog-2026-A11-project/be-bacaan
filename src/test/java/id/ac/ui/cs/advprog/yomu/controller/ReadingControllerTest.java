@@ -39,10 +39,10 @@ class ReadingControllerTest {
     when(quizService.getReading("user1", "read1")).thenReturn(reading);
 
     mockMvc.perform(get("/api/student/readings/{readingId}", "read1")
-        .header("userId", "user1"))
-      .andExpect(status().isOk())
-      .andExpect(jsonPath("$.id").value("read1"))
-      .andExpect(jsonPath("$.title").value("Test Title"));
+            .header("userId", "user1"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value("read1"))
+        .andExpect(jsonPath("$.title").value("Test Title"));
 
     verify(quizService, times(1)).getReading("user1", "read1");
   }
@@ -50,12 +50,12 @@ class ReadingControllerTest {
   @Test
   void testGetReadingAlreadyCompleted() throws Exception {
     when(quizService.getReading("user1", "read1"))
-      .thenThrow(new IllegalStateException("Congratulations! You've completed this quiz!"));
+        .thenThrow(new IllegalStateException("Congratulations! You've completed this quiz!"));
 
     mockMvc.perform(get("/api/student/readings/{readingId}", "read1")
-        .header("userId", "user1"))
-      .andExpect(status().isBadRequest())
-      .andExpect(content().string("Congratulations! You've completed this quiz!"));
+            .header("userId", "user1"))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string("Congratulations! You've completed this quiz!"));
 
     verify(quizService, times(1)).getReading("user1", "read1");
   }
@@ -65,9 +65,9 @@ class ReadingControllerTest {
     doNothing().when(quizService).completeQuiz("user1", "read1");
 
     mockMvc.perform(post("/api/student/readings/{readingId}/complete", "read1")
-        .header("userId", "user1"))
-      .andExpect(status().isOk())
-      .andExpect(content().string("Thank you for completing the quiz!"));
+            .header("userId", "user1"))
+        .andExpect(status().isOk())
+        .andExpect(content().string("Thank you for completing the quiz!"));
 
     verify(quizService, times(1)).completeQuiz("user1", "read1");
   }
@@ -75,12 +75,12 @@ class ReadingControllerTest {
   @Test
   void testCompleteQuizAlreadyCompleted() throws Exception {
     doThrow(new IllegalStateException("This quiz has been completed"))
-      .when(quizService).completeQuiz("user1", "read1");
+        .when(quizService).completeQuiz("user1", "read1");
 
     mockMvc.perform(post("/api/student/readings/{readingId}/complete", "read1")
-        .header("userId", "user1"))
-      .andExpect(status().isBadRequest())
-      .andExpect(content().string("This quiz has been completed"));
+            .header("userId", "user1"))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string("This quiz has been completed"));
 
     verify(quizService, times(1)).completeQuiz("user1", "read1");
   }

@@ -18,6 +18,6 @@ class YomuApplicationTests {
     // (if we use port 8080 to run main program)
     System.setProperty("server.port", "0");
     assertDoesNotThrow(() ->
-      YomuApplication.main(new String[]{}));
+        YomuApplication.main(new String[]{}));
   }
 }

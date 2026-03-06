@@ -15,7 +15,7 @@ class QuizCompletionEventTest {
 
     // when
     QuizCompletionEvent event = new QuizCompletionEvent(expectedSource,
-      expectedUserId, expectedReadingId);
+        expectedUserId, expectedReadingId);
 
     // then
     assertNotNull(event, "Event should be created");

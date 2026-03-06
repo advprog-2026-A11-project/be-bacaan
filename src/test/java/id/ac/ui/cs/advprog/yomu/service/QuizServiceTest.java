@@ -28,7 +28,7 @@ class QuizServiceTest {
     userProgressRepository = mock(UserProgressRepository.class);
     eventPublisher = mock(ApplicationEventPublisher.class);
     quizService = new QuizService(readingRepository,
-      userProgressRepository, eventPublisher);
+        userProgressRepository, eventPublisher);
   }
 
   @Test
@@ -37,13 +37,13 @@ class QuizServiceTest {
     String readingId = "read1";
 
     when(userProgressRepository.existsByUserIdAndReadingId(userId,
-      readingId)).thenReturn(true);
+        readingId)).thenReturn(true);
 
     IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
-      quizService.getReading(userId, readingId)
+        quizService.getReading(userId, readingId)
     );
     assertEquals("Congratulations! You've completed this quiz!",
-      exception.getMessage());
+        exception.getMessage());
   }
 
   @Test
@@ -54,12 +54,12 @@ class QuizServiceTest {
     reading.setId(readingId);
 
     when(userProgressRepository.existsByUserIdAndReadingId(userId,
-      readingId)).thenReturn(false);
+        readingId)).thenReturn(false);
     when(readingRepository.findById(readingId))
-      .thenReturn(Optional.of(reading));
+        .thenReturn(Optional.of(reading));
 
     Reading result = quizService.getReading(userId,
-      readingId);
+        readingId);
     assertEquals(reading, result);
   }
 
@@ -69,24 +69,24 @@ class QuizServiceTest {
     String readingId = "read1";
 
     when(userProgressRepository.existsByUserIdAndReadingId(userId,
-      readingId)).thenReturn(false);
+        readingId)).thenReturn(false);
 
     quizService.completeQuiz(userId, readingId);
 
     // verifikasi progress disimpan
     ArgumentCaptor<UserProgress> progressCaptor = ArgumentCaptor
-      .forClass(UserProgress.class);
+        .forClass(UserProgress.class);
     verify(userProgressRepository, times(1))
-      .save(progressCaptor.capture());
+        .save(progressCaptor.capture());
     assertEquals(userId, progressCaptor.getValue().getUserId());
     assertEquals(readingId, progressCaptor.getValue().getReadingId());
     assertNotNull(progressCaptor.getValue().getCompletedAt());
 
     // verifikasi event dipublish
     ArgumentCaptor<QuizCompletionEvent> eventCaptor = ArgumentCaptor
-      .forClass(QuizCompletionEvent.class);
+        .forClass(QuizCompletionEvent.class);
     verify(eventPublisher, times(1))
-      .publishEvent(eventCaptor.capture());
+        .publishEvent(eventCaptor.capture());
     assertEquals(userId, eventCaptor.getValue().getUserId());
     assertEquals(readingId, eventCaptor.getValue().getReadingId());
   }
@@ -97,14 +97,14 @@ class QuizServiceTest {
     String readingId = "read1";
 
     when(userProgressRepository.existsByUserIdAndReadingId
-      (userId, readingId)).thenReturn(true);
+        (userId, readingId)).thenReturn(true);
 
     IllegalStateException exception = assertThrows(
-      IllegalStateException.class, () ->
-      quizService.completeQuiz(userId, readingId)
+        IllegalStateException.class, () ->
+            quizService.completeQuiz(userId, readingId)
     );
     assertEquals("This quiz has been completed",
-      exception.getMessage());
+        exception.getMessage());
 
     verify(userProgressRepository, never()).save(any());
     verify(eventPublisher, never()).publishEvent(any());
@@ -116,13 +116,13 @@ class QuizServiceTest {
     String readingId = "read1";
 
     when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
-      .thenReturn(false);
+        .thenReturn(false);
     when(readingRepository.findById(readingId))
-      .thenReturn(Optional.empty());
+        .thenReturn(Optional.empty());
 
     IllegalArgumentException exception = assertThrows(
-      IllegalArgumentException.class, () ->
-        quizService.getReading(userId, readingId)
+        IllegalArgumentException.class, () ->
+            quizService.getReading(userId, readingId)
     );
     assertEquals("Not found", exception.getMessage());
   }
