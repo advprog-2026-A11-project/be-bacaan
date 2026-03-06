@@ -3,6 +3,8 @@ package id.ac.ui.cs.advprog.yomu;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 @SpringBootTest
 class YomuApplicationTests {
 
@@ -10,4 +12,12 @@ class YomuApplicationTests {
   void contextLoads() {
   }
 
+  @Test
+  void runMain() {
+    // use available port so that it won't conflict with port 8080
+    // (if we use port 8080 to run main program)
+    System.setProperty("server.port", "0");
+    assertDoesNotThrow(() ->
+        YomuApplication.main(new String[]{}));
+  }
 }
