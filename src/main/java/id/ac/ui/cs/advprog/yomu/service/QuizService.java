@@ -48,7 +48,7 @@ public class QuizService {
     String cleanUserId = validateId(userId);
     String cleanReadingId = validateId(readingId);
 
-    if (userProgressRepository.existsByUserIdAndReadingId(cleanUSerId, cleanReadingId)) {
+    if (userProgressRepository.existsByUserIdAndReadingId(cleanUserId, cleanReadingId)) {
       throw new IllegalStateException("This quiz has been completed");
     }
 
