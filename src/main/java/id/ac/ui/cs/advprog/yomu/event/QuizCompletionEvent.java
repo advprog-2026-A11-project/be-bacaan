@@ -12,6 +12,14 @@ public class QuizCompletionEvent extends ApplicationEvent {
 
   public QuizCompletionEvent(Object source, String userId, String readingId) {
     super(source);
+
+    if (userId == null || !userId.matches("^[a-zA-Z0-9]+$")) {
+      throw new IllegalArgumentException("Invalid userId format: Contains malicious characters");
+    }
+    if (readingId == null || !readingId.matches("^[a-zA-Z0-9-]+$")) {
+      throw new IllegalArgumentException("Invalid readingId format");
+    }
+
     this.userId = userId;
     this.readingId = readingId;
   }
