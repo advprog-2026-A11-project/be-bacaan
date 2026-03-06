@@ -20,7 +20,7 @@ public class QuizService {
   private final ApplicationEventPublisher eventPublisher;
 
   public Reading getReading(String userId, String readingId) {
-    if(userProgressRepository.existsByUserIdAndReadingId(userId, readingId)) {
+    if (userProgressRepository.existsByUserIdAndReadingId(userId, readingId)) {
       throw new IllegalStateException("Congratulations! You've completed this quiz!");
     }
     return readingRepository.findById(readingId)
@@ -29,7 +29,7 @@ public class QuizService {
 
   @Transactional
   public void completeQuiz(String userId, String readingId) {
-    if(userProgressRepository.existsByUserIdAndReadingId(userId, readingId)) {
+    if (userProgressRepository.existsByUserIdAndReadingId(userId, readingId)) {
       throw new IllegalStateException("This quiz has been completed");
     }
 
@@ -41,6 +41,7 @@ public class QuizService {
     userProgressRepository.save(progress);
 
     // trigger untuk modul lain
-    eventPublisher.publishEvent(new QuizCompletionEvent(this, userId, readingId));
+    eventPublisher.publishEvent(new
+        QuizCompletionEvent(this, userId, readingId));
   }
 }
