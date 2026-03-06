@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.context.ApplicationEventPublisher;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -39,14 +38,14 @@ class QuizServiceTest {
   // validateId() tests
   // =============================
   @Test
-  void testValidateId_Null() {
+  void testValidateIdNull() {
     IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
         () -> quizService.getReading(null, "reading123"));
     assertEquals("Invalid ID format", ex.getMessage());
   }
 
   @Test
-  void testValidateId_InvalidChars() {
+  void testValidateIdInvalidChars() {
     assertThrows(IllegalArgumentException.class, () -> quizService
         .getReading("user 123!", "reading123"));
     assertThrows(IllegalArgumentException.class, () -> quizService
@@ -57,7 +56,7 @@ class QuizServiceTest {
   // getReading() tests
   // =============================
   @Test
-  void testGetReading_Success() {
+  void testGetReadingSuccess() {
     String userId = "user123";
     String readingId = "reading456";
 
@@ -81,7 +80,7 @@ class QuizServiceTest {
   }
 
   @Test
-  void testGetReading_AlreadyCompleted() {
+  void testGetReadingAlreadyCompleted() {
     String userId = "user123";
     String readingId = "reading456";
 
@@ -96,7 +95,7 @@ class QuizServiceTest {
   }
 
   @Test
-  void testGetReading_ReadingNotFound() {
+  void testGetReadingReadingNotFound() {
     String userId = "user123";
     String readingId = "reading456";
 
@@ -113,7 +112,7 @@ class QuizServiceTest {
   // completeQuiz() tests
   // =============================
   @Test
-  void testCompleteQuiz_Success() {
+  void testCompleteQuizSuccess() {
     String userId = "user123";
     String readingId = "reading-456";
 
@@ -145,7 +144,7 @@ class QuizServiceTest {
   }
 
   @Test
-  void testCompleteQuiz_AlreadyCompleted() {
+  void testCompleteQuizAlreadyCompleted() {
     String userId = "user123";
     String readingId = "reading-456";
 
@@ -161,7 +160,7 @@ class QuizServiceTest {
   }
 
   @Test
-  void testCompleteQuiz_InvalidId() {
+  void testCompleteQuizInvalidId() {
     assertThrows(IllegalArgumentException.class, () -> quizService
         .completeQuiz("user 123!", "reading-456"));
     assertThrows(IllegalArgumentException.class, () -> quizService

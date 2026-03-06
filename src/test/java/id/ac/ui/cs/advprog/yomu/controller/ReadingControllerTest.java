@@ -29,7 +29,7 @@ class ReadingControllerTest {
   // GET /{readingId}
   // =============================
   @Test
-  void testGetReading_Success() {
+  void testGetReadingSuccess() {
     String userId = "user123";
     String readingId = "reading456";
 
@@ -49,7 +49,7 @@ class ReadingControllerTest {
   }
 
   @Test
-  void testGetReading_ServiceThrowsException() {
+  void testGetReadingServiceThrowsException() {
     String userId = "user123";
     String readingId = "reading456";
 
@@ -67,7 +67,7 @@ class ReadingControllerTest {
   // POST /{readingId}/complete
   // =============================
   @Test
-  void testCompleteQuiz_Success() {
+  void testCompleteQuizSuccess() {
     String userId = "user123";
     String readingId = "reading456";
 
@@ -79,7 +79,7 @@ class ReadingControllerTest {
   }
 
   @Test
-  void testCompleteQuiz_InvalidUserId() {
+  void testCompleteQuizInvalidUserId() {
     String invalidUserId = "user 123!"; // ada spasi & simbol
     String readingId = "reading456";
 
@@ -91,7 +91,7 @@ class ReadingControllerTest {
   }
 
   @Test
-  void testCompleteQuiz_NullUserId() {
+  void testCompleteQuizNullUserId() {
     String readingId = "reading456";
 
     ResponseEntity<String> response = readingController.completeQuiz(null, readingId);
@@ -102,7 +102,7 @@ class ReadingControllerTest {
   }
 
   @Test
-  void testCompleteQuiz_InvalidReadingId() {
+  void testCompleteQuizInvalidReadingId() {
     String userId = "user123";
     String invalidReadingId = "reading 456!";
 
@@ -114,7 +114,7 @@ class ReadingControllerTest {
   }
 
   @Test
-  void testCompleteQuiz_NullReadingId() {
+  void testCompleteQuizNullReadingId() {
     String userId = "user123";
 
     ResponseEntity<String> response = readingController.completeQuiz(userId, null);
@@ -125,7 +125,7 @@ class ReadingControllerTest {
   }
 
   @Test
-  void testCompleteQuiz_ServiceThrowsException() {
+  void testCompleteQuizServiceThrowsException() {
     String userId = "user123";
     String readingId = "reading456";
 

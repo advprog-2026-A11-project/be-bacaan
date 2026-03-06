@@ -45,7 +45,7 @@ public class QuizService {
 
   @Transactional
   public void completeQuiz(String userId, String readingId) {
-    String cleanUSerId = validateId(userId);
+    String cleanUserId = validateId(userId);
     String cleanReadingId = validateId(readingId);
 
     if (userProgressRepository.existsByUserIdAndReadingId(cleanUSerId, cleanReadingId)) {

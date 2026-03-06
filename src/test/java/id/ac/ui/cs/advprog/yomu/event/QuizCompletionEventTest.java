@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class QuizCompletionEventTest {
 
   @Test
-  void testConstructor_ValidIds() {
+  void testConstructorValidIds() {
     String userId = "user123";
     String readingId = "reading-456";
 
@@ -20,7 +20,7 @@ class QuizCompletionEventTest {
   }
 
   @Test
-  void testConstructor_InvalidUserId() {
+  void testConstructorInvalidUserId() {
     String invalidUserId = "user 123!";
     String readingId = "reading-456";
 
@@ -31,7 +31,7 @@ class QuizCompletionEventTest {
   }
 
   @Test
-  void testConstructor_InvalidReadingId() {
+  void testConstructorInvalidReadingId() {
     String userId = "user123";
     String invalidReadingId = "reading 456!";
 
@@ -42,7 +42,7 @@ class QuizCompletionEventTest {
   }
 
   @Test
-  void testConstructor_NullIds() {
+  void testConstructorNullIds() {
     // userId null
     assertThrows(IllegalArgumentException.class,
         () -> new QuizCompletionEvent(this, null, "reading-123"));

@@ -27,7 +27,7 @@ class GlobalExceptionHandlerTest {
   }
 
   @Test
-  void testHandleIllegalState_WithDifferentMessage() {
+  void testHandleIllegalStateWithDifferentMessage() {
     IllegalStateException ex = new IllegalStateException("Quiz already finished");
 
     ResponseEntity<String> response = exceptionHandler.handleIllegalState(ex);
