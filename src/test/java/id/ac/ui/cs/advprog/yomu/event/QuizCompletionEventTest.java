@@ -13,7 +13,8 @@ class QuizCompletionEventTest {
     Object expectedSource = new Object();
 
     // when
-    QuizCompletionEvent event = new QuizCompletionEvent(expectedSource, expectedUserId, expectedReadingId);
+    QuizCompletionEvent event = new QuizCompletionEvent(expectedSource,
+        expectedUserId, expectedReadingId);
 
     // then
     assertNotNull(event, "Event should be created");

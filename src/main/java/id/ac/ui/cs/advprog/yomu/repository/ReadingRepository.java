@@ -7,5 +7,6 @@ import java.util.List;
 
 public interface ReadingRepository extends JpaRepository<Reading, String> {
   List<Reading> findByCategory(String category);
+
   List<Reading> findByDifficultyLevel(String diffLevel);
 }
