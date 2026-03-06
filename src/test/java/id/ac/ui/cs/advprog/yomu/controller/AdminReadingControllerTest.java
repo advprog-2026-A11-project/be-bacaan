@@ -62,8 +62,8 @@ class AdminReadingControllerTest {
     ResponseEntity<Void> response = controller.update(id, updatedReading);
 
     assertEquals(200, response.getStatusCodeValue());
-    verify(adminService, times(1)).
-        updateReading(id, updatedReading);
+    verify(adminService, times(1))
+        .updateReading(id, updatedReading);
   }
 
   @Test
@@ -73,7 +73,7 @@ class AdminReadingControllerTest {
     ResponseEntity<Void> response = controller.delete(id);
 
     assertEquals(200, response.getStatusCodeValue());
-    verify(adminService, times(1)).
-        deleteReading(id);
+    verify(adminService, times(1))
+        .deleteReading(id);
   }
 }

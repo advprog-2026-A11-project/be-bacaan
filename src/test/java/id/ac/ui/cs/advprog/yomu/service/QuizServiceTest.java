@@ -96,8 +96,8 @@ class QuizServiceTest {
     String userId = "user1";
     String readingId = "read1";
 
-    when(userProgressRepository.existsByUserIdAndReadingId
-        (userId, readingId)).thenReturn(true);
+    when(userProgressRepository.existsByUserIdAndReadingId(
+        userId, readingId)).thenReturn(true);
 
     IllegalStateException exception = assertThrows(
         IllegalStateException.class, () ->
