@@ -1,7 +1,7 @@
 package id.ac.ui.cs.advprog.yomu.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import id.ac.ui.cs.advprog.yomu.dto.ReadingRequestDTO;
+import id.ac.ui.cs.advprog.yomu.dto.ReadingRequest;
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
 import id.ac.ui.cs.advprog.yomu.service.AdminReadingService;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +31,7 @@ class AdminReadingControllerTest {
   @InjectMocks
   private AdminReadingController controller;
 
-  private ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   @BeforeEach
   void setUp() {
@@ -40,20 +40,20 @@ class AdminReadingControllerTest {
   }
 
   @Test
-  void testCreate() throws Exception {
-    ReadingRequestDTO dto = new ReadingRequestDTO();
+  void testCreateReading() throws Exception {
+    final ReadingRequest dto = new ReadingRequest();
     dto.setTitle("Test Title");
     dto.setContent("Test Content");
     dto.setCategory("Science");
     dto.setDifficultyLevel("Medium");
 
-    Reading savedReading = new Reading();
+    final Reading savedReading = new Reading();
     savedReading.setTitle(dto.getTitle());
     savedReading.setContent(dto.getContent());
     savedReading.setCategory(dto.getCategory());
     savedReading.setDifficultyLevel(dto.getDifficultyLevel());
 
-    when(adminService.createReading(any(ReadingRequestDTO.class))).thenReturn(savedReading);
+    when(adminService.createReading(any(ReadingRequest.class))).thenReturn(savedReading);
 
     mockMvc.perform(post("/api/admin/readings/create")
             .contentType(MediaType.APPLICATION_JSON)
@@ -64,20 +64,20 @@ class AdminReadingControllerTest {
         .andExpect(jsonPath("$.category").value("Science"))
         .andExpect(jsonPath("$.difficultyLevel").value("Medium"));
 
-    verify(adminService, times(1)).createReading(any(ReadingRequestDTO.class));
+    verify(adminService, times(1)).createReading(any(ReadingRequest.class));
   }
 
   @Test
-  void testGetAll() throws Exception {
-    Reading r1 = new Reading();
+  void testGetAllReadings() throws Exception {
+    final Reading r1 = new Reading();
     r1.setTitle("R1");
-    Reading r2 = new Reading();
+    final Reading r2 = new Reading();
     r2.setTitle("R2");
 
-    List<Reading> readings = Arrays.asList(r1, r2);
+    final List<Reading> readings = Arrays.asList(r1, r2);
     when(adminService.findAll()).thenReturn(readings);
 
-    mockMvc.perform(get("/api/admin/readings"))
+    mockMvc.perform(get("/api/admin/readings/reading-list"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(2))
         .andExpect(jsonPath("$[0].title").value("R1"))
@@ -87,27 +87,27 @@ class AdminReadingControllerTest {
   }
 
   @Test
-  void testUpdate() throws Exception {
-    String id = "123";
-    ReadingRequestDTO dto = new ReadingRequestDTO();
+  void testUpdateReading() throws Exception {
+    final String id = "123";
+    final ReadingRequest dto = new ReadingRequest();
     dto.setTitle("Updated Title");
     dto.setContent("Updated Content");
     dto.setCategory("Math");
     dto.setDifficultyLevel("Hard");
 
-    doNothing().when(adminService).updateReading(eq(id), any(ReadingRequestDTO.class));
+    doNothing().when(adminService).updateReading(eq(id), any(ReadingRequest.class));
 
     mockMvc.perform(put("/api/admin/readings/{id}", id)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(dto)))
         .andExpect(status().isOk());
 
-    verify(adminService, times(1)).updateReading(eq(id), any(ReadingRequestDTO.class));
+    verify(adminService, times(1)).updateReading(eq(id), any(ReadingRequest.class));
   }
 
   @Test
-  void testDelete() throws Exception {
-    String id = "123";
+  void testDeleteReading() throws Exception {
+    final String id = "123";
     doNothing().when(adminService).deleteReading(id);
 
     mockMvc.perform(delete("/api/admin/readings/{id}", id))

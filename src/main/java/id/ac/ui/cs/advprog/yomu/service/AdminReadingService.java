@@ -2,7 +2,7 @@ package id.ac.ui.cs.advprog.yomu.service;
 
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
 import id.ac.ui.cs.advprog.yomu.repository.ReadingRepository;
-import id.ac.ui.cs.advprog.yomu.dto.ReadingRequestDTO;
+import id.ac.ui.cs.advprog.yomu.dto.ReadingRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +14,7 @@ import java.util.List;
 public class AdminReadingService {
   private final ReadingRepository readingRepository;
 
-  public Reading createReading(ReadingRequestDTO dto) {
+  public Reading createReading(ReadingRequest dto) {
     Reading reading = new Reading();
     reading.setTitle(dto.getTitle());
     reading.setContent(dto.getContent());
@@ -33,7 +33,7 @@ public class AdminReadingService {
   }
 
   @Transactional
-  public void updateReading(String id, ReadingRequestDTO dto) {
+  public void updateReading(String id, ReadingRequest dto) {
     Reading reading = readingRepository.findById(id)
         .orElseThrow(() -> new RuntimeException("Reading not found"));
 
