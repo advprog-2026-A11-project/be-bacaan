@@ -1,6 +1,7 @@
 package id.ac.ui.cs.advprog.yomu.event;
 
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class QuizCompletionEventTest {
@@ -14,7 +15,7 @@ class QuizCompletionEventTest {
 
     // when
     QuizCompletionEvent event = new QuizCompletionEvent(expectedSource,
-        expectedUserId, expectedReadingId);
+      expectedUserId, expectedReadingId);
 
     // then
     assertNotNull(event, "Event should be created");

@@ -10,7 +10,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import  java.time.LocalDateTime;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +24,7 @@ public class QuizService {
       throw new IllegalStateException("Congratulations! You've completed this quiz!");
     }
     return readingRepository.findById(readingId)
-        .orElseThrow(() -> new IllegalArgumentException("Not found"));
+      .orElseThrow(() -> new IllegalArgumentException("Not found"));
   }
 
   @Transactional
@@ -42,6 +42,6 @@ public class QuizService {
 
     // trigger untuk modul lain
     eventPublisher.publishEvent(new
-        QuizCompletionEvent(this, userId, readingId));
+      QuizCompletionEvent(this, userId, readingId));
   }
 }

@@ -5,7 +5,7 @@ import lombok.Getter;
 
 // berfungsi untuk mengirimkan notifikasi ke modul lain ketika pelajar menyelesaikan kuis
 @Getter
-public class QuizCompletionEvent extends ApplicationEvent{
+public class QuizCompletionEvent extends ApplicationEvent {
 
   private final String userId;
   private final String readingId;

@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UserProgressRepository  extends JpaRepository<UserProgress, String> {
+public interface UserProgressRepository extends JpaRepository<UserProgress, String> {
 
   boolean existsByUserIdAndReadingId(String userId, String readingId);
 }

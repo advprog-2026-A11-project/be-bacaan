@@ -14,9 +14,10 @@ class YomuApplicationTests {
 
   @Test
   void runMain() {
-    System.setProperty("server.port", "0"); // use available port so that it won't conflict with port 8080 (if we use port 8080 to run main program)
-
+    // use available port so that it won't conflict with port 8080
+    // (if we use port 8080 to run main program)
+    System.setProperty("server.port", "0");
     assertDoesNotThrow(() ->
-        YomuApplication.main(new String[] {}));
+      YomuApplication.main(new String[]{}));
   }
 }
