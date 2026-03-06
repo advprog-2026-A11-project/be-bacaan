@@ -1,10 +1,14 @@
 package id.ac.ui.cs.advprog.yomu.service;
 
+import id.ac.ui.cs.advprog.yomu.dto.ReadingRequest;
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
 import id.ac.ui.cs.advprog.yomu.repository.ReadingRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
 import java.util.List;
@@ -15,39 +19,56 @@ import static org.mockito.Mockito.*;
 
 class AdminReadingServiceTest {
 
+  @Mock
   private ReadingRepository readingRepository;
-  private AdminReadingService adminReadingService;
+
+  @InjectMocks
+  private AdminReadingService adminService;
 
   @BeforeEach
   void setUp() {
-    readingRepository = mock(ReadingRepository.class);
-    adminReadingService = new AdminReadingService(readingRepository);
+    MockitoAnnotations.openMocks(this);
   }
 
   @Test
   void testCreateReading() {
-    Reading reading = new Reading();
-    reading.setId("r1");
-    reading.setTitle("Title 1");
+    final ReadingRequest dto = new ReadingRequest();
+    dto.setTitle("Test Title");
+    dto.setContent("Test Content");
+    dto.setCategory("Science");
+    dto.setDifficultyLevel("Medium");
 
-    when(readingRepository.save(reading)).thenReturn(reading);
+    final Reading savedReading = new Reading();
+    savedReading.setTitle(dto.getTitle());
+    savedReading.setContent(dto.getContent());
+    savedReading.setCategory(dto.getCategory());
+    savedReading.setDifficultyLevel(dto.getDifficultyLevel());
 
-    Reading result = adminReadingService.createReading(reading);
+    when(readingRepository.save(any(Reading.class))).thenReturn(savedReading);
 
-    assertEquals(reading, result);
-    verify(readingRepository, times(1)).save(reading);
+    final Reading result = adminService.createReading(dto);
+
+    ArgumentCaptor<Reading> captor = ArgumentCaptor.forClass(Reading.class);
+    verify(readingRepository).save(captor.capture());
+    final Reading captured = captor.getValue();
+
+    assertEquals(dto.getTitle(), captured.getTitle());
+    assertEquals(dto.getContent(), captured.getContent());
+    assertEquals(dto.getCategory(), captured.getCategory());
+    assertEquals(dto.getDifficultyLevel(), captured.getDifficultyLevel());
+    assertEquals(savedReading, result);
   }
 
   @Test
   void testFindAll() {
-    Reading r1 = new Reading();
-    r1.setId("r1");
-    Reading r2 = new Reading();
-    r2.setId("r2");
+    final Reading r1 = new Reading();
+    r1.setTitle("R1");
+    final Reading r2 = new Reading();
+    r2.setTitle("R2");
 
     when(readingRepository.findAll()).thenReturn(Arrays.asList(r1, r2));
 
-    List<Reading> result = adminReadingService.findAll();
+    final List<Reading> result = adminService.findAll();
 
     assertEquals(2, result.size());
     assertTrue(result.contains(r1));
@@ -57,55 +78,48 @@ class AdminReadingServiceTest {
 
   @Test
   void testDeleteReading() {
-    String id = "r1";
-
+    final String id = "123";
     doNothing().when(readingRepository).deleteById(id);
 
-    adminReadingService.deleteReading(id);
-
+    adminService.deleteReading(id);
     verify(readingRepository, times(1)).deleteById(id);
   }
 
   @Test
-  void testUpdateReadingSuccess() {
-    String id = "r1";
-    Reading existing = new Reading();
-    existing.setId(id);
+  void testUpdateReading() {
+    final String id = "123";
+    final Reading existing = new Reading();
     existing.setTitle("Old Title");
     existing.setContent("Old Content");
-    existing.setCategory("Old Cat");
+    existing.setCategory("Old Category");
     existing.setDifficultyLevel("Easy");
 
-    Reading updated = new Reading();
-    updated.setTitle("New Title");
-    updated.setContent("New Content");
-    updated.setCategory("New Cat");
-    updated.setDifficultyLevel("Hard");
+    final ReadingRequest dto = new ReadingRequest();
+    dto.setTitle("New Title");
+    dto.setContent("New Content");
+    dto.setCategory("Math");
+    dto.setDifficultyLevel("Hard");
 
     when(readingRepository.findById(id)).thenReturn(Optional.of(existing));
 
-    adminReadingService.updateReading(id, updated);
+    adminService.updateReading(id, dto);
 
-    // verifikasi field di-update
     assertEquals("New Title", existing.getTitle());
     assertEquals("New Content", existing.getContent());
-    assertEquals("New Cat", existing.getCategory());
+    assertEquals("Math", existing.getCategory());
     assertEquals("Hard", existing.getDifficultyLevel());
-    verify(readingRepository, times(1)).findById(id);
   }
 
   @Test
   void testUpdateReadingNotFound() {
-    String id = "r1";
-    Reading updated = new Reading();
+    final String id = "not-exist";
+    final ReadingRequest dto = new ReadingRequest();
 
     when(readingRepository.findById(id)).thenReturn(Optional.empty());
 
-    RuntimeException exception = assertThrows(RuntimeException.class, () ->
-        adminReadingService.updateReading(id, updated)
-    );
+    RuntimeException exception = assertThrows(RuntimeException.class,
+        () -> adminService.updateReading(id, dto));
 
-    assertEquals("Not found", exception.getMessage());
-    verify(readingRepository, times(1)).findById(id);
+    assertEquals("Reading not found", exception.getMessage());
   }
 }

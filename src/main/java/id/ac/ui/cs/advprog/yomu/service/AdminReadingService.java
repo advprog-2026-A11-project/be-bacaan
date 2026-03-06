@@ -2,6 +2,7 @@ package id.ac.ui.cs.advprog.yomu.service;
 
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
 import id.ac.ui.cs.advprog.yomu.repository.ReadingRepository;
+import id.ac.ui.cs.advprog.yomu.dto.ReadingRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +14,12 @@ import java.util.List;
 public class AdminReadingService {
   private final ReadingRepository readingRepository;
 
-  public Reading createReading(Reading reading) {
+  public Reading createReading(ReadingRequest dto) {
+    Reading reading = new Reading();
+    reading.setTitle(dto.getTitle());
+    reading.setContent(dto.getContent());
+    reading.setCategory(dto.getCategory());
+    reading.setDifficultyLevel(dto.getDifficultyLevel());
     return readingRepository.save(reading);
   }
 
@@ -27,13 +33,13 @@ public class AdminReadingService {
   }
 
   @Transactional
-  public void updateReading(String id, Reading newReading) {
+  public void updateReading(String id, ReadingRequest dto) {
     Reading reading = readingRepository.findById(id)
-        .orElseThrow(() -> new RuntimeException("Not found"));
-    reading.setTitle(newReading.getTitle());
-    reading.setContent(newReading.getContent());
-    reading.setCategory(newReading.getCategory());
-    reading.setDifficultyLevel(newReading.getDifficultyLevel());
-    reading.setQuestions(newReading.getQuestions());
+        .orElseThrow(() -> new RuntimeException("Reading not found"));
+
+    reading.setTitle(dto.getTitle());
+    reading.setContent(dto.getContent());
+    reading.setCategory(dto.getCategory());
+    reading.setDifficultyLevel(dto.getDifficultyLevel());
   }
 }
