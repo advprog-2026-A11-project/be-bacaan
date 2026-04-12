@@ -54,8 +54,8 @@ public class QuizService {
 
     // Simpan user progress
     UserProgress progress = new UserProgress();
-    progress.setUserId(userId);
-    progress.setReadingId(readingId);
+    progress.setUserId(cleanUserId);
+    progress.setReadingId(cleanReadingId);
     progress.setCompletedAt(LocalDateTime.now());
     userProgressRepository.save(progress);
 
