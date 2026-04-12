@@ -1,5 +1,6 @@
 package id.ac.ui.cs.advprog.yomu.controller;
 
+import id.ac.ui.cs.advprog.yomu.dto.CompletedQuizRequest;
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
 import id.ac.ui.cs.advprog.yomu.service.QuizService;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +36,8 @@ public class ReadingController {
 
   @PostMapping("/{readingId}/complete")
   public ResponseEntity<String> completeQuiz(@RequestHeader("userId") String userId,
-                                             @PathVariable String readingId) {
+                                             @PathVariable String readingId,
+                                             @RequestBody CompletedQuizRequest request) {
     if (userId == null || !userId.matches("^[a-zA-Z0-9]+$")) {
       return ResponseEntity.status(400).body("Invalid User ID format");
     }
@@ -44,7 +46,8 @@ public class ReadingController {
       return ResponseEntity.status(400).body("Invalid Reading ID format");
     }
 
-    quizService.completeQuiz(userId, readingId);
+    quizService.completeQuiz(userId, readingId,
+        request.getScore(), request.getAccuracy());
     return ResponseEntity.ok("Thank you for completing the quiz!");
   }
 }
