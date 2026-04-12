@@ -32,14 +32,14 @@ public class QuizService {
   }
 
   public Reading getReading(String userId, String readingId) {
-    validateId(userId);
-    validateId(readingId);
+    String cleanUserId = validateId(userId);
+    String cleanReadingId = validateId(readingId);
 
-    if (userProgressRepository.existsByUserIdAndReadingId(userId, readingId)) {
+    if (userProgressRepository.existsByUserIdAndReadingId(cleanUserId, cleanReadingId)) {
       throw new IllegalStateException("Congratulations! You've completed this quiz!");
     }
 
-    return readingRepository.findById(readingId)
+    return readingRepository.findById(cleanReadingId)
         .orElseThrow(() -> new IllegalArgumentException("Reading not found"));
   }
 
@@ -56,8 +56,8 @@ public class QuizService {
     UserProgress progress = new UserProgress();
     progress.setUserId(cleanUserId);
     progress.setReadingId(cleanReadingId);
-
     progress.setCompletedAt(LocalDateTime.now());
+
     userProgressRepository.save(progress);
 
     // Publish event dengan data yang sudah divalidasi
