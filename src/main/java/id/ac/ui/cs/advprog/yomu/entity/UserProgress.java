@@ -18,5 +18,6 @@ public class UserProgress {
   private String userId;
   private String readingId;
   private LocalDateTime completedAt;
-
+  private int score;
+  private double accuracy;
 }
