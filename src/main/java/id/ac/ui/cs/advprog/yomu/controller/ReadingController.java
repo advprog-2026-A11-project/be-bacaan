@@ -2,6 +2,7 @@ package id.ac.ui.cs.advprog.yomu.controller;
 
 import id.ac.ui.cs.advprog.yomu.dto.CompletedQuizRequest;
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
+import id.ac.ui.cs.advprog.yomu.entity.UserProgress;
 import id.ac.ui.cs.advprog.yomu.service.QuizService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/student/readings")
@@ -49,5 +54,28 @@ public class ReadingController {
     quizService.completeQuiz(userId, readingId,
         request.getScore(), request.getAccuracy());
     return ResponseEntity.ok("Thank you for completing the quiz!");
+  }
+
+  @GetMapping("/stats/{userId}")
+  public ResponseEntity<?> getUserStats(@PathVariable String userId) {
+    if (userId == null || !userId.matches("^[a-zA-Z0-9]+$")) {
+      return ResponseEntity.status(400).body("Invalid User ID format");
+    }
+
+    List<UserProgress> progresses = userProgressRepository.findByUserId(userId);
+
+    long totalCompleted = progresses.size();
+    double avgAccuracy = progresses.stream()
+        .mapToDouble(UserProgress::getAccuracy)
+        .average()
+        .orElse(0.0);
+
+    Map<String, Object> stats = new HashMap<>();
+    stats.put("userId", userId);
+    stats.put("totalCompleted", totalCompleted);
+    stats.put("completionFrequency", totalCompleted);
+    stats.put("averageAccuracy", avgAccuracy);
+
+    return ResponseEntity.ok(stats);
   }
 }
