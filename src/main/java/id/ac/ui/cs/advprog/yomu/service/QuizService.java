@@ -56,6 +56,7 @@ public class QuizService {
     UserProgress progress = new UserProgress();
     progress.setUserId(cleanUserId);
     progress.setReadingId(cleanReadingId);
+
     progress.setCompletedAt(LocalDateTime.now());
     userProgressRepository.save(progress);
 
