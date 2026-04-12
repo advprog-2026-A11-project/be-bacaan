@@ -44,7 +44,7 @@ public class QuizService {
   }
 
   @Transactional
-  public void completeQuiz(String userId, String readingId) {
+  public void completeQuiz(String userId, String readingId, int score, double accuracy) {
     String cleanUserId = validateId(userId);
     String cleanReadingId = validateId(readingId);
 
@@ -57,6 +57,8 @@ public class QuizService {
     progress.setUserId(cleanUserId);
     progress.setReadingId(cleanReadingId);
     progress.setCompletedAt(LocalDateTime.now());
+    progress.setScore(score);
+    progress.setAccuracy(accuracy);
 
     userProgressRepository.save(progress);
 
