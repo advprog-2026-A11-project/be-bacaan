@@ -19,8 +19,17 @@ public class ReadingController {
   private final QuizService quizService;
 
   @GetMapping("/{readingId}")
-  public ResponseEntity<Reading> getReading(@RequestHeader("userId") String userId,
-                                            @PathVariable String readingId) {
+  public ResponseEntity<?> getReading(@RequestHeader("userId") String userId,
+                                      @PathVariable String readingId) {
+
+    if (userId == null || !userId.matches("^[a-zA-Z0-9]+$")) {
+      return ResponseEntity.status(400).body("Invalid User ID format");
+    }
+
+    if (readingId == null || !readingId.matches("^[a-zA-Z0-9]+$")) {
+      return ResponseEntity.status(400).body("Invalid Reading ID format");
+    }
+
     return ResponseEntity.ok(quizService.getReading(userId, readingId));
   }
 
