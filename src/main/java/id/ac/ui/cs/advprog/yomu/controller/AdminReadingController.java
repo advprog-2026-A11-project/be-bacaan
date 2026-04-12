@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/readings")
-@CrossOrigin(origins = "http://localhost:300")
+@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class AdminReadingController {
   private final AdminReadingService adminService;
