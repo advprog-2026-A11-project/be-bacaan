@@ -35,4 +35,25 @@ class GlobalExceptionHandlerTest {
     assertEquals(400, response.getStatusCodeValue());
     assertEquals("Quiz already finished", response.getBody());
   }
+
+  @Test
+  void testHandleIllegalArgument() {
+    IllegalArgumentException ex = new IllegalArgumentException("Reading not found");
+
+    ResponseEntity<String> response = exceptionHandler.handleIllegalArgument(ex);
+
+    assertNotNull(response);
+    assertEquals(400, response.getStatusCodeValue());
+    assertEquals("Reading not found", response.getBody());
+  }
+
+  @Test
+  void testHandleIllegalArgumentInvalidFormat() {
+    IllegalArgumentException ex = new IllegalArgumentException("Invalid ID format");
+
+    ResponseEntity<String> response = exceptionHandler.handleIllegalArgument(ex);
+
+    assertEquals(400, response.getStatusCodeValue());
+    assertEquals("Invalid ID format", response.getBody());
+  }
 }

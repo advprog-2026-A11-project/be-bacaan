@@ -149,7 +149,7 @@ class ReadingControllerTest {
     ResponseEntity<?> response = readingController.getReading(invalidUserId, readingId);
 
     assertEquals(400, response.getStatusCodeValue());
-    assertEquals("Invalid User ID formar", response.getBody());
+    assertEquals("Invalid User ID format", response.getBody());
     verify(quizService, never()).getReading(anyString(), anyString());
   }
 
