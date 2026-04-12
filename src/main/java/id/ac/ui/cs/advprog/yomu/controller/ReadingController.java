@@ -1,8 +1,8 @@
 package id.ac.ui.cs.advprog.yomu.controller;
 
 import id.ac.ui.cs.advprog.yomu.dto.CompletedQuizRequest;
-import id.ac.ui.cs.advprog.yomu.entity.Reading;
 import id.ac.ui.cs.advprog.yomu.entity.UserProgress;
+import id.ac.ui.cs.advprog.yomu.repository.UserProgressRepository;
 import id.ac.ui.cs.advprog.yomu.service.QuizService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +23,7 @@ import java.util.Map;
 public class ReadingController {
 
   private final QuizService quizService;
+  private final UserProgressRepository userProgressRepository;
 
   @GetMapping("/{readingId}")
   public ResponseEntity<?> getReading(@RequestHeader("userId") String userId,
