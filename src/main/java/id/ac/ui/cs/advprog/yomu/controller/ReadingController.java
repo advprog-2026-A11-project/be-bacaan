@@ -26,7 +26,7 @@ public class ReadingController {
       return ResponseEntity.status(400).body("Invalid User ID format");
     }
 
-    if (readingId == null || !readingId.matches("^[a-zA-Z0-9]+$")) {
+    if (readingId == null || !readingId.matches("^[a-zA-Z0-9-]+$")) {
       return ResponseEntity.status(400).body("Invalid Reading ID format");
     }
 

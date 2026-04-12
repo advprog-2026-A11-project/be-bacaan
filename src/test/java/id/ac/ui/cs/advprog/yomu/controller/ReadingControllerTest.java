@@ -164,4 +164,21 @@ class ReadingControllerTest {
     assertEquals("Invalid Reading ID format", response.getBody());
     verify(quizService, never()).getReading(anyString(), anyString());
   }
+
+  @Test
+  void testGetReadingWithDashInReadingId() {
+    String userId = "user123";
+    String readingId = "reading-456";
+
+    Reading reading = new Reading();
+    reading.setId(readingId);
+    reading.setTitle("Sample Reading");
+
+    when (quizService.getReading(userId, readingId)).thenReturn(reading);
+
+    ResponseEntity<?> response = readingController.getReading(userId, readingId);
+
+    assertEquals(200, response.getStatusCodeValue());
+    verify(quizService, times(1)).getReading(userId, readingId);
+  }
 }
