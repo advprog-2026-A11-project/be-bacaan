@@ -39,11 +39,13 @@ class ReadingControllerTest {
 
     when(quizService.getReading(userId, readingId)).thenReturn(reading);
 
-    ResponseEntity<Reading> response = readingController.getReading(userId, readingId);
+    ResponseEntity<?> response = readingController.getReading(userId, readingId);
 
     assertEquals(200, response.getStatusCodeValue());
-    assertEquals("reading456", response.getBody().getId());
-    assertEquals("Sample Reading", response.getBody().getTitle());
+
+    Reading body = (Reading) response.getBody();
+    assertEquals("reading456", body.getId());
+    assertEquals("Sample Reading", body.getTitle());
 
     verify(quizService, times(1)).getReading(userId, readingId);
   }
@@ -137,5 +139,29 @@ class ReadingControllerTest {
 
     assertEquals("This quiz has been completed", ex.getMessage());
     verify(quizService, times(1)).completeQuiz(userId, readingId);
+  }
+
+  @Test
+  void testGetReadingInvalidUserId() {
+    String invalidUserId = "user 123!";
+    String readingId = "reading456";
+
+    ResponseEntity<?> response = readingController.getReading(invalidUserId, readingId);
+
+    assertEquals(400, response.getStatusCodeValue());
+    assertEquals("Invalid User ID formar", response.getBody());
+    verify(quizService, never()).getReading(anyString(), anyString());
+  }
+
+  @Test
+  void testGetReadingInvalidReadingId() {
+    String userId = "user123";
+    String invalidReadingId = "reading 456!";
+
+    ResponseEntity<?> response = readingController.getReading(userId, invalidReadingId);
+
+    assertEquals(400, response.getStatusCodeValue());
+    assertEquals("Invalid Reading ID format", response.getBody());
+    verify(quizService, never()).getReading(anyString(), anyString());
   }
 }
