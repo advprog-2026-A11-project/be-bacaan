@@ -39,4 +39,14 @@ public class AdminReadingController {
     return ResponseEntity.ok().build();
   }
 
+  // catch previous data for update reading
+  @GetMapping("/{id")
+  public ResponseEntity<Reading> getById(@PathVariable String id) {
+    Reading reading = adminService.findAll().stream()
+        .filter(r -> r.getId().equals(id))
+        .findFirst()
+        .orElseThrow(() -> new RuntimeException("Reading id not found!"));
+    return ResponseEntity.ok(reading);
+  }
+
 }
