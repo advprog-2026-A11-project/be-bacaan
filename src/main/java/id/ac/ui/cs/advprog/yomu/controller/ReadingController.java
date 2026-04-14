@@ -93,4 +93,9 @@ public class ReadingController {
 
     return ResponseEntity.ok(stats);
   }
+
+  // get all readings
+  public ResponseEntity<List<Reading>> getAllReadings(@RequestHeader("userId") String userId) {
+    return ResponseEntity.ok(adminService.findAll());
+  }
 }
