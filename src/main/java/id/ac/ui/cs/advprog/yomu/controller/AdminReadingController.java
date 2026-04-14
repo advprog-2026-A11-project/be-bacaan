@@ -40,7 +40,7 @@ public class AdminReadingController {
   }
 
   // catch previous data for update reading
-  @GetMapping("/{id")
+  @GetMapping("/{id}")
   public ResponseEntity<Reading> getById(@PathVariable String id) {
     Reading reading = adminService.findAll().stream()
         .filter(r -> r.getId().equals(id))
