@@ -3,6 +3,8 @@ package id.ac.ui.cs.advprog.yomu.controller;
 import id.ac.ui.cs.advprog.yomu.dto.CompletedQuizRequest;
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
 import id.ac.ui.cs.advprog.yomu.service.QuizService;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -12,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.mock.http.server.reactive.MockServerHttpRequest.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class ReadingControllerTest {
 
@@ -21,9 +25,12 @@ class ReadingControllerTest {
   @InjectMocks
   private ReadingController readingController;
 
+  private MockMvc mockMvc;
+
   @BeforeEach
   void setUp() {
     MockitoAnnotations.openMocks(this);
+    mockMvc = MockMvcBuilders.standaloneSetup(readingController).build();
   }
 
   // =============================
@@ -206,5 +213,12 @@ class ReadingControllerTest {
 
     assertEquals(200, response.getStatusCodeValue());
     verify(quizService, times(1)).getReading(userId, readingId);
+  }
+
+  @Test
+  void testGetAllReadingsForStudent() throws Exception {
+    mockMvc.perform(get("/api/student/readings")
+            .header("userId", "user123"))
+        .andExpect(status().isOk());
   }
 }
