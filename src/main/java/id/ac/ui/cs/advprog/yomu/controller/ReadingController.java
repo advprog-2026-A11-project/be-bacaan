@@ -95,6 +95,7 @@ public class ReadingController {
   }
 
   // get all readings
+  @GetMapping
   public ResponseEntity<List<Reading>> getAllReadings(@RequestHeader("userId") String userId) {
     return ResponseEntity.ok(adminService.findAll());
   }
