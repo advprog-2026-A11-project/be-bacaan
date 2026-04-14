@@ -1,8 +1,11 @@
 package id.ac.ui.cs.advprog.yomu.controller;
 
 import id.ac.ui.cs.advprog.yomu.dto.CompletedQuizRequest;
+import id.ac.ui.cs.advprog.yomu.dto.ReadingResponse;
+import id.ac.ui.cs.advprog.yomu.entity.Reading;
 import id.ac.ui.cs.advprog.yomu.entity.UserProgress;
 import id.ac.ui.cs.advprog.yomu.repository.UserProgressRepository;
+import id.ac.ui.cs.advprog.yomu.service.AdminReadingService;
 import id.ac.ui.cs.advprog.yomu.service.QuizService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +26,7 @@ import java.util.Map;
 public class ReadingController {
 
   private final QuizService quizService;
+  private final AdminReadingService adminService;
   private final UserProgressRepository userProgressRepository;
 
   @GetMapping("/{readingId}")
@@ -37,7 +41,17 @@ public class ReadingController {
       return ResponseEntity.status(400).body("Invalid Reading ID format");
     }
 
-    return ResponseEntity.ok(quizService.getReading(userId, readingId));
+    Reading reading = adminService.getById(readingId);
+
+    ReadingResponse response = ReadingResponse.builder()
+        .id(reading.getId())
+        .title(reading.getTitle())
+        .content(reading.getContent())
+        .category(reading.getCategory())
+        .difficultyLevel(reading.getDifficultyLevel())
+        .build();
+
+    return ResponseEntity.ok(response);
   }
 
   @PostMapping("/{readingId}/complete")
