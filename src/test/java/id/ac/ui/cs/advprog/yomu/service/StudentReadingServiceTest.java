@@ -60,7 +60,7 @@ public class StudentReadingServiceTest {
 
     assertThatThrownBy(() ->
         studentReadingService.getReading("user-1", "not-exist"))
-        .isInstanceOf(IllegalAccessException.class)
+        .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Reading not found");
   }
 
@@ -98,14 +98,14 @@ public class StudentReadingServiceTest {
     student2.setUserId("student-2");
     student2.setAccuracy(70.0);
 
-    when(userProgressRepository.findByUserId("user-1")).thenReturn(List.of(student1, student2));
+    when(userProgressRepository.findByUserId("student-1")).thenReturn(List.of(student1, student2));
 
-    Map<String, Object> stats = studentReadingService.getUserStats("user-1");
+    Map<String, Object> stats = studentReadingService.getUserStats("student-1");
 
     assertThat(stats.get("userId")).isEqualTo("student-1");
     assertThat(stats.get("totalCompleted")).isEqualTo(2L);
     assertThat(stats.get("completionFrequency")).isEqualTo(2L);
-    assertThat((Double) stats.get("averageAccuracy")).isEqualTo(70.0);
+    assertThat((Double) stats.get("averageAccuracy")).isEqualTo(75.0);
   }
 
   @Test
@@ -114,7 +114,7 @@ public class StudentReadingServiceTest {
 
     Map<String, Object> stats = studentReadingService.getUserStats("new-user");
 
-    assertThat(stats.get("totalCompeleted")).isEqualTo(0L);
+    assertThat(stats.get("totalCompleted")).isEqualTo(0L);
     assertThat(stats.get("averageAccuracy")).isEqualTo(0.0);
   }
 }
