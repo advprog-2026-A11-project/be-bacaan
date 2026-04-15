@@ -7,6 +7,7 @@ import id.ac.ui.cs.advprog.yomu.entity.UserProgress;
 import id.ac.ui.cs.advprog.yomu.repository.UserProgressRepository;
 import id.ac.ui.cs.advprog.yomu.service.AdminReadingService;
 import id.ac.ui.cs.advprog.yomu.service.QuizService;
+import id.ac.ui.cs.advprog.yomu.service.StudentReadingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,11 +24,11 @@ import java.util.Map;
 @RequestMapping("/api/student/readings")
 @CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
-public class ReadingController {
+public class StudentReadingController {
 
   private final QuizService quizService;
-  private final AdminReadingService adminService;
-  private final UserProgressRepository userProgressRepository;
+
+  private final StudentReadingService studentReadingService;
 
   @GetMapping("/{readingId}")
   public ResponseEntity<?> getReading(@RequestHeader("userId") String userId,
@@ -41,7 +42,7 @@ public class ReadingController {
       return ResponseEntity.status(400).body("Invalid Reading ID format");
     }
 
-    Reading reading = adminService.getById(readingId);
+    Reading reading = studentReadingService.getReading(userId, readingId);
 
     ReadingResponse response = ReadingResponse.builder()
         .id(reading.getId())
@@ -77,26 +78,12 @@ public class ReadingController {
       return ResponseEntity.status(400).body("Invalid User ID format");
     }
 
-    List<UserProgress> progresses = userProgressRepository.findByUserId(userId);
-
-    long totalCompleted = progresses.size();
-    double avgAccuracy = progresses.stream()
-        .mapToDouble(UserProgress::getAccuracy)
-        .average()
-        .orElse(0.0);
-
-    Map<String, Object> stats = new HashMap<>();
-    stats.put("userId", userId);
-    stats.put("totalCompleted", totalCompleted);
-    stats.put("completionFrequency", totalCompleted);
-    stats.put("averageAccuracy", avgAccuracy);
-
-    return ResponseEntity.ok(stats);
+    return ResponseEntity.ok(studentReadingService.getUserStats(userId));
   }
 
   // get all readings
   @GetMapping
   public ResponseEntity<List<Reading>> getAllReadings(@RequestHeader("userId") String userId) {
-    return ResponseEntity.ok(adminService.findAll());
+    return ResponseEntity.ok(studentReadingService.getAllReadings());
   }
 }

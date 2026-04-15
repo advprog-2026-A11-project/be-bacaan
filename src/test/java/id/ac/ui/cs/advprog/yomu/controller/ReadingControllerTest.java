@@ -23,7 +23,7 @@ class ReadingControllerTest {
   private QuizService quizService;
 
   @InjectMocks
-  private ReadingController readingController;
+  private StudentReadingController readingController;
 
   private MockMvc mockMvc;
 
