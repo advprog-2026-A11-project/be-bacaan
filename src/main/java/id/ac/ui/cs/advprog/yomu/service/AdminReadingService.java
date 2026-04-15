@@ -42,4 +42,9 @@ public class AdminReadingService {
     reading.setCategory(dto.getCategory());
     reading.setDifficultyLevel(dto.getDifficultyLevel());
   }
+
+  public Reading getById(String id) {
+    return readingRepository.findById(id)
+        .orElseThrow(() -> new RuntimeException("Reading id is not found: " + id));
+  }
 }

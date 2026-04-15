@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/readings")
-@CrossOrigin(origins = "http://localhost:300")
+@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class AdminReadingController {
   private final AdminReadingService adminService;
@@ -37,6 +37,12 @@ public class AdminReadingController {
   public ResponseEntity<Void> delete(@PathVariable String id) {
     adminService.deleteReading(id);
     return ResponseEntity.ok().build();
+  }
+
+  // catch previous data for update reading
+  @GetMapping("/{id}")
+  public ResponseEntity<Reading> getById(@PathVariable String id) {
+    return ResponseEntity.ok(adminService.getById(id));
   }
 
 }

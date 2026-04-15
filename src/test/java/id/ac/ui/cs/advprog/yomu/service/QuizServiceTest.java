@@ -115,26 +115,32 @@ class QuizServiceTest {
   void testCompleteQuizSuccess() {
     String userId = "user123";
     String readingId = "reading-456";
+    int score = 80;
+    double accuracy = 0.9;
 
     when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
         .thenReturn(false);
 
-    quizService.completeQuiz(userId, readingId);
+    quizService.completeQuiz(userId, readingId, score, accuracy);
 
     // Verifikasi UserProgress disimpan
     ArgumentCaptor<UserProgress> captor = ArgumentCaptor
         .forClass(UserProgress.class);
+
     verify(userProgressRepository, times(1))
         .save(captor.capture());
 
     UserProgress saved = captor.getValue();
     assertEquals(userId, saved.getUserId());
     assertEquals(readingId, saved.getReadingId());
+    assertEquals(score, saved.getScore());
+    assertEquals(accuracy, saved.getAccuracy());
     assertNotNull(saved.getCompletedAt());
 
     // Verifikasi event diterbitkan
     ArgumentCaptor<QuizCompletionEvent> eventCaptor = ArgumentCaptor
         .forClass(QuizCompletionEvent.class);
+
     verify(eventPublisher, times(1))
         .publishEvent(eventCaptor.capture());
 
@@ -147,12 +153,15 @@ class QuizServiceTest {
   void testCompleteQuizAlreadyCompleted() {
     String userId = "user123";
     String readingId = "reading-456";
+    int score = 80;
+    double accuracy = 0.9;
 
     when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
         .thenReturn(true);
 
     IllegalStateException ex = assertThrows(IllegalStateException.class,
-        () -> quizService.completeQuiz(userId, readingId));
+        () -> quizService.completeQuiz(userId, readingId, score, accuracy));
+
     assertEquals("This quiz has been completed", ex.getMessage());
 
     verify(userProgressRepository, never()).save(any());
@@ -161,13 +170,16 @@ class QuizServiceTest {
 
   @Test
   void testCompleteQuizInvalidId() {
+    int score = 80;
+    double accuracy = 0.9;
+
     assertThrows(IllegalArgumentException.class, () -> quizService
-        .completeQuiz("user 123!", "reading-456"));
+        .completeQuiz("user 123!", "reading-456", score, accuracy));
     assertThrows(IllegalArgumentException.class, () -> quizService
-        .completeQuiz("user123", "reading 456!"));
+        .completeQuiz("user123", "reading 456!", score, accuracy));
     assertThrows(IllegalArgumentException.class, () -> quizService
-        .completeQuiz(null, "reading-456"));
+        .completeQuiz(null, "reading-456", score, accuracy));
     assertThrows(IllegalArgumentException.class, () -> quizService
-        .completeQuiz("user123", null));
+        .completeQuiz("user123", null, score, accuracy));
   }
 }
