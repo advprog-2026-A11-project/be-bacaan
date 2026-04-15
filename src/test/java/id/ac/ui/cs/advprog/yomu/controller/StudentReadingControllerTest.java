@@ -180,8 +180,8 @@ class StudentReadingControllerTest {
     request.setAccuracy(0.9);
 
     doThrow(new IllegalStateException("This quiz has been completed"))
-        .when(quizService).
-        completeQuiz(userId, readingId, 80, 0.9);
+        .when(quizService)
+        .completeQuiz(userId, readingId, 80, 0.9);
 
     IllegalStateException ex = assertThrows(IllegalStateException.class,
         () -> readingController.completeQuiz(userId, readingId, request));
@@ -224,7 +224,7 @@ class StudentReadingControllerTest {
     reading.setId(readingId);
     reading.setTitle("Sample Reading");
 
-    when (studentReadingService.getReading(userId, readingId)).thenReturn(reading);
+    when(studentReadingService.getReading(userId, readingId)).thenReturn(reading);
 
     ResponseEntity<?> response = readingController.getReading(userId, readingId);
 

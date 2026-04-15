@@ -1,6 +1,5 @@
 package id.ac.ui.cs.advprog.yomu.service;
 
-
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
 import id.ac.ui.cs.advprog.yomu.entity.UserProgress;
 import id.ac.ui.cs.advprog.yomu.repository.ReadingRepository;
@@ -109,7 +108,7 @@ public class StudentReadingServiceTest {
   }
 
   @Test
-  void testGetUserStatsWithNoCompeletedReadingsReturnsZero() {
+  void testGetUserStatsWithNoCompletedReadingsReturnsZero() {
     when(userProgressRepository.findByUserId("new-user")).thenReturn(List.of());
 
     Map<String, Object> stats = studentReadingService.getUserStats("new-user");

@@ -10,5 +10,6 @@ import java.util.List;
 public interface UserProgressRepository extends JpaRepository<UserProgress, String> {
 
   boolean existsByUserIdAndReadingId(String userId, String readingId);
+
   List<UserProgress> findByUserId(String userId);
 }
