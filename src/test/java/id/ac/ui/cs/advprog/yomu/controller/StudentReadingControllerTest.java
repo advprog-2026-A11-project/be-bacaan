@@ -5,6 +5,7 @@ import id.ac.ui.cs.advprog.yomu.dto.ReadingResponse;
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
 import id.ac.ui.cs.advprog.yomu.service.QuizService;
 import id.ac.ui.cs.advprog.yomu.service.StudentReadingService;
+
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.junit.jupiter.api.BeforeEach;
@@ -108,11 +109,13 @@ class StudentReadingControllerTest {
     request.setScore(80);
     request.setAccuracy(0.9);
 
-    ResponseEntity<String> response = readingController.completeQuiz(invalidUserId, readingId, request);
+    ResponseEntity<String> response = readingController
+        .completeQuiz(invalidUserId, readingId, request);
 
     assertEquals(400, response.getStatusCodeValue());
     assertEquals("Invalid User ID format", response.getBody());
-    verify(quizService, never()).completeQuiz(anyString(), anyString(), anyInt(), anyDouble());
+    verify(quizService, never())
+        .completeQuiz(anyString(), anyString(), anyInt(), anyDouble());
   }
 
   @Test
@@ -123,11 +126,13 @@ class StudentReadingControllerTest {
     request.setScore(80);
     request.setAccuracy(0.9);
 
-    ResponseEntity<String> response = readingController.completeQuiz(null, readingId, request);
+    ResponseEntity<String> response = readingController
+        .completeQuiz(null, readingId, request);
 
     assertEquals(400, response.getStatusCodeValue());
     assertEquals("Invalid User ID format", response.getBody());
-    verify(quizService, never()).completeQuiz(anyString(), anyString(), anyInt(), anyDouble());
+    verify(quizService, never())
+        .completeQuiz(anyString(), anyString(), anyInt(), anyDouble());
   }
 
   @Test
@@ -139,11 +144,13 @@ class StudentReadingControllerTest {
     request.setScore(80);
     request.setAccuracy(0.9);
 
-    ResponseEntity<String> response = readingController.completeQuiz(userId, invalidReadingId, request);
+    ResponseEntity<String> response = readingController
+        .completeQuiz(userId, invalidReadingId, request);
 
     assertEquals(400, response.getStatusCodeValue());
     assertEquals("Invalid Reading ID format", response.getBody());
-    verify(quizService, never()).completeQuiz(anyString(), anyString(), anyInt(), anyDouble());
+    verify(quizService, never())
+        .completeQuiz(anyString(), anyString(), anyInt(), anyDouble());
   }
 
   @Test
@@ -154,11 +161,13 @@ class StudentReadingControllerTest {
     request.setScore(80);
     request.setAccuracy(0.9);
 
-    ResponseEntity<String> response = readingController.completeQuiz(userId, null, request);
+    ResponseEntity<String> response = readingController
+        .completeQuiz(userId, null, request);
 
     assertEquals(400, response.getStatusCodeValue());
     assertEquals("Invalid Reading ID format", response.getBody());
-    verify(quizService, never()).completeQuiz(anyString(), anyString(), anyInt(), anyDouble());
+    verify(quizService, never())
+        .completeQuiz(anyString(), anyString(), anyInt(), anyDouble());
   }
 
   @Test
@@ -178,7 +187,8 @@ class StudentReadingControllerTest {
         () -> readingController.completeQuiz(userId, readingId, request));
 
     assertEquals("This quiz has been completed", ex.getMessage());
-    verify(quizService, times(1)).completeQuiz(userId, readingId, request.getScore(), request.getAccuracy());
+    verify(quizService, times(1))
+        .completeQuiz(userId, readingId, request.getScore(), request.getAccuracy());
   }
 
   @Test

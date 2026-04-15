@@ -44,7 +44,7 @@ public class StudentReadingServiceTest {
   }
 
   @Test
-  void testGetReading_WhenReadingExists() {
+  void testGetReadingWhenReadingExists() {
     when(readingRepository.findById("reading-123")).thenReturn(Optional.of(reading));
 
     Reading result = studentReadingService.getReading("user-1", "reading-123");
@@ -55,7 +55,7 @@ public class StudentReadingServiceTest {
   }
 
   @Test
-  void testGetReading_WhenReadingNotFound() {
+  void testGetReadingWhenReadingNotFound() {
     when(readingRepository.findById("not-exist")).thenReturn(Optional.empty());
 
     assertThatThrownBy(() ->
@@ -65,7 +65,7 @@ public class StudentReadingServiceTest {
   }
 
   @Test
-  void testGetAllReading_WhenExist() {
+  void testGetAllReadingWhenExist() {
     Reading reading2 = new Reading();
     reading2.setId("reading-456");
     reading2.setTitle("TDD principle");
@@ -80,7 +80,7 @@ public class StudentReadingServiceTest {
   }
 
   @Test
-  void testGetAllReadings_EmptyList() {
+  void testGetAllReadingsEmptyList() {
     when(readingRepository.findAll()).thenReturn(List.of());
 
     List<Reading> result = studentReadingService.getAllReadings();
@@ -89,7 +89,7 @@ public class StudentReadingServiceTest {
   }
 
   @Test
-  void testGetUserStats_WithCompleteReadings_ReturnCorrectStats() {
+  void testGetUserStatsWithCompleteReadingsReturnCorrectStats() {
     UserProgress student1 = new UserProgress();
     student1.setUserId("student-1");
     student1.setAccuracy(80.0);
@@ -109,7 +109,7 @@ public class StudentReadingServiceTest {
   }
 
   @Test
-  void testGetUserStats_WithNoCompeletedReadings_ReturnsZero() {
+  void testGetUserStatsWithNoCompeletedReadingsReturnsZero() {
     when(userProgressRepository.findByUserId("new-user")).thenReturn(List.of());
 
     Map<String, Object> stats = studentReadingService.getUserStats("new-user");

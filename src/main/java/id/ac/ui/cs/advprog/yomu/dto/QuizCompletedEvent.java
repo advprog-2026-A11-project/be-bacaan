@@ -1,5 +1,10 @@
 package id.ac.ui.cs.advprog.yomu.dto;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class QuizCompletedEvent {
   private String userId;
   private int score;
@@ -13,15 +18,4 @@ public class QuizCompletedEvent {
     this.accuracy = accuracy;
   }
 
-  public String getUserId() { return  userId;}
-
-  public void setUserId(String userId) { this.userId = userId;}
-
-  public int getScore() { return score;}
-
-  public void setScore(int score) { this.score = score;}
-
-  public double getAccuracy() { return accuracy;}
-
-  public void setAccuracy(double accuracy) { this.accuracy = accuracy;}
 }
