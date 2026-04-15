@@ -3,9 +3,6 @@ package id.ac.ui.cs.advprog.yomu.controller;
 import id.ac.ui.cs.advprog.yomu.dto.CompletedQuizRequest;
 import id.ac.ui.cs.advprog.yomu.dto.ReadingResponse;
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
-import id.ac.ui.cs.advprog.yomu.entity.UserProgress;
-import id.ac.ui.cs.advprog.yomu.repository.UserProgressRepository;
-import id.ac.ui.cs.advprog.yomu.service.AdminReadingService;
 import id.ac.ui.cs.advprog.yomu.service.QuizService;
 import id.ac.ui.cs.advprog.yomu.service.StudentReadingService;
 import lombok.RequiredArgsConstructor;
@@ -16,9 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/student/readings")

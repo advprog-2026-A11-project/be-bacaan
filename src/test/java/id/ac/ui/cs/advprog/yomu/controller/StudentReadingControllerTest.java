@@ -1,8 +1,10 @@
 package id.ac.ui.cs.advprog.yomu.controller;
 
 import id.ac.ui.cs.advprog.yomu.dto.CompletedQuizRequest;
+import id.ac.ui.cs.advprog.yomu.dto.ReadingResponse;
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
 import id.ac.ui.cs.advprog.yomu.service.QuizService;
+import id.ac.ui.cs.advprog.yomu.service.StudentReadingService;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,18 +14,23 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.springframework.mock.http.server.reactive.MockServerHttpRequest.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class ReadingControllerTest {
+class StudentReadingControllerTest {
 
   @Mock
   private QuizService quizService;
 
   @InjectMocks
   private StudentReadingController readingController;
+
+  @Mock
+  private StudentReadingService studentReadingService;
 
   private MockMvc mockMvc;
 
@@ -45,17 +52,17 @@ class ReadingControllerTest {
     reading.setId(readingId);
     reading.setTitle("Sample Reading");
 
-    when(quizService.getReading(userId, readingId)).thenReturn(reading);
+    when(studentReadingService.getReading(userId, readingId)).thenReturn(reading);
 
     ResponseEntity<?> response = readingController.getReading(userId, readingId);
 
     assertEquals(200, response.getStatusCodeValue());
 
-    Reading body = (Reading) response.getBody();
+    ReadingResponse body = (ReadingResponse) response.getBody();
     assertEquals("reading456", body.getId());
     assertEquals("Sample Reading", body.getTitle());
 
-    verify(quizService, times(1)).getReading(userId, readingId);
+    verify(studentReadingService, times(1)).getReading(userId, readingId);
   }
 
   @Test
@@ -63,14 +70,14 @@ class ReadingControllerTest {
     String userId = "user123";
     String readingId = "reading456";
 
-    when(quizService.getReading(userId, readingId))
+    when(studentReadingService.getReading(userId, readingId))
         .thenThrow(new IllegalStateException("Quiz already completed"));
 
     IllegalStateException ex = assertThrows(IllegalStateException.class,
         () -> readingController.getReading(userId, readingId));
 
     assertEquals("Quiz already completed", ex.getMessage());
-    verify(quizService, times(1)).getReading(userId, readingId);
+    verify(studentReadingService, times(1)).getReading(userId, readingId);
   }
 
   // =============================
@@ -183,7 +190,7 @@ class ReadingControllerTest {
 
     assertEquals(400, response.getStatusCodeValue());
     assertEquals("Invalid User ID format", response.getBody());
-    verify(quizService, never()).getReading(anyString(), anyString());
+    verify(studentReadingService, never()).getReading(anyString(), anyString());
   }
 
   @Test
@@ -195,7 +202,7 @@ class ReadingControllerTest {
 
     assertEquals(400, response.getStatusCodeValue());
     assertEquals("Invalid Reading ID format", response.getBody());
-    verify(quizService, never()).getReading(anyString(), anyString());
+    verify(studentReadingService, never()).getReading(anyString(), anyString());
   }
 
   @Test
@@ -207,16 +214,18 @@ class ReadingControllerTest {
     reading.setId(readingId);
     reading.setTitle("Sample Reading");
 
-    when (quizService.getReading(userId, readingId)).thenReturn(reading);
+    when (studentReadingService.getReading(userId, readingId)).thenReturn(reading);
 
     ResponseEntity<?> response = readingController.getReading(userId, readingId);
 
     assertEquals(200, response.getStatusCodeValue());
-    verify(quizService, times(1)).getReading(userId, readingId);
+    verify(studentReadingService, times(1)).getReading(userId, readingId);
   }
 
   @Test
   void testGetAllReadingsForStudent() throws Exception {
+    when(studentReadingService.getAllReadings()).thenReturn(List.of());
+
     mockMvc.perform(get("/api/student/readings")
             .header("userId", "user123"))
         .andExpect(status().isOk());
