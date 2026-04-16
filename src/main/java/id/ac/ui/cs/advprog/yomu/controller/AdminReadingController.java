@@ -50,4 +50,6 @@ public class AdminReadingController {
     return ResponseEntity.ok(adminService.getById(id));
   }
 
+
+
 }
