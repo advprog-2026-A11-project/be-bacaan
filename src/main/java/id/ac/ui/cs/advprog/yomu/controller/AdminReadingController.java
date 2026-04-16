@@ -18,19 +18,19 @@ public class AdminReadingController {
   private final AdminReadingService adminService;
 
   @PostMapping("/create")
-  //@PreAuthorize("hasAuthority('ADMIN')")
+  // @PreAuthorize("hasAuthority('ADMIN')")
   public ResponseEntity<Reading> create(@RequestBody ReadingRequest requestDto) {
     return ResponseEntity.ok(adminService.createReading(requestDto));
   }
 
   @GetMapping("/reading-list")
-  //@PreAuthorize("hasRole('ADMIN')")
+  // @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<List<Reading>> getAll() {
     return ResponseEntity.ok(adminService.findAll());
   }
 
   @PutMapping("/{id}")
-  //@PreAuthorize("hasRole('ADMIN')")
+  // @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> update(@PathVariable String id,
                                      @RequestBody ReadingRequest requestDto) {
     adminService.updateReading(id, requestDto);
@@ -38,7 +38,7 @@ public class AdminReadingController {
   }
 
   @DeleteMapping("/{id}")
-  //@PreAuthorize("hasRole('ADMIN')")
+  // @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> delete(@PathVariable String id) {
     adminService.deleteReading(id);
     return ResponseEntity.ok().build();
@@ -46,7 +46,7 @@ public class AdminReadingController {
 
   // catch previous data for update reading
   @GetMapping("/{id}")
-  //@PreAuthorize("hasRole('ADMIN')")
+  // @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Reading> getById(@PathVariable String id) {
     return ResponseEntity.ok(adminService.getById(id));
   }
