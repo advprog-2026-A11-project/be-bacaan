@@ -1,6 +1,7 @@
 package id.ac.ui.cs.advprog.yomu.controller;
 
 import id.ac.ui.cs.advprog.yomu.dto.ReadingRequest;
+import id.ac.ui.cs.advprog.yomu.dto.ReadingResponse;
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
 import id.ac.ui.cs.advprog.yomu.service.AdminReadingService;
 import lombok.RequiredArgsConstructor;
@@ -47,8 +48,22 @@ public class AdminReadingController {
   // catch previous data for update reading
   @GetMapping("/{id}")
   // @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<Reading> getById(@PathVariable String id) {
-    return ResponseEntity.ok(adminService.getById(id));
+  public ResponseEntity<?> getById(@PathVariable String id) {
+    Reading reading = adminService.getById(id);
+
+    if (reading == null) {
+      return ResponseEntity.notFound().build();
+    }
+
+    ReadingResponse response = ReadingResponse.builder()
+        .id(reading.getId())
+        .title(reading.getTitle())
+        .content(reading.getContent())
+        .category(reading.getCategory())
+        .difficultyLevel(reading.getDifficultyLevel())
+        .build();
+
+    return ResponseEntity.ok(response);
   }
 
 
