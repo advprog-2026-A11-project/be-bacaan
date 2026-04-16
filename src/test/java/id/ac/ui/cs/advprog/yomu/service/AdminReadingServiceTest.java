@@ -122,4 +122,14 @@ class AdminReadingServiceTest {
 
     assertEquals("Reading not found", exception.getMessage());
   }
+
+  @Test
+  void testGetByIdShouldUseRepositoryFindById() {
+    String id = "123";
+    Reading mockReading = new Reading();
+    when(readingRepository.findById(id)).thenReturn(Optional.of(mockReading));
+
+    adminService.getById(id);
+    verify(readingRepository, times(1)).findById(id);
+  }
 }
