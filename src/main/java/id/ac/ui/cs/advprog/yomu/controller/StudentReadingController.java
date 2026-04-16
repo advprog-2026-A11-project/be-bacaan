@@ -3,10 +3,12 @@ package id.ac.ui.cs.advprog.yomu.controller;
 import id.ac.ui.cs.advprog.yomu.dto.CompletedQuizRequest;
 import id.ac.ui.cs.advprog.yomu.dto.ReadingResponse;
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
+import id.ac.ui.cs.advprog.yomu.security.YomulPrincipal;
 import id.ac.ui.cs.advprog.yomu.service.QuizService;
 import id.ac.ui.cs.advprog.yomu.service.StudentReadingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,24 +19,20 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/student/readings")
-@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class StudentReadingController {
 
   private final QuizService quizService;
-
   private final StudentReadingService studentReadingService;
 
   @GetMapping("/{readingId}")
-  public ResponseEntity<?> getReading(@RequestHeader("userId") String userId,
+  public ResponseEntity<?> getReading(@AuthenticationPrincipal YomulPrincipal principal,
                                       @PathVariable String readingId) {
 
-    if (userId == null || !userId.matches("^[a-zA-Z0-9]+$")) {
-      return ResponseEntity.status(400).body("Invalid User ID format");
-    }
+    String userId = principal.userId();
 
-    if (readingId == null || !readingId.matches("^[a-zA-Z0-9-]+$")) {
-      return ResponseEntity.status(400).body("Invalid Reading ID format");
+    if (!isValidId(readingId)) {
+      return ResponseEntity.badRequest().body("Invalid Reading ID format");
     }
 
     Reading reading = studentReadingService.getReading(userId, readingId);
@@ -51,15 +49,13 @@ public class StudentReadingController {
   }
 
   @PostMapping("/{readingId}/complete")
-  public ResponseEntity<String> completeQuiz(@RequestHeader("userId") String userId,
+  public ResponseEntity<String> completeQuiz(@AuthenticationPrincipal YomulPrincipal principal,
                                              @PathVariable String readingId,
                                              @RequestBody CompletedQuizRequest request) {
-    if (userId == null || !userId.matches("^[a-zA-Z0-9]+$")) {
-      return ResponseEntity.status(400).body("Invalid User ID format");
-    }
+    String userId = principal.userId();
 
-    if (readingId == null || !readingId.matches("^[a-zA-Z0-9-]+$")) {
-      return ResponseEntity.status(400).body("Invalid Reading ID format");
+    if (!isValidId(readingId)) {
+      return ResponseEntity.badRequest().body("Invalid Reading ID format");
     }
 
     quizService.completeQuiz(userId, readingId,
@@ -68,17 +64,17 @@ public class StudentReadingController {
   }
 
   @GetMapping("/stats/{userId}")
-  public ResponseEntity<?> getUserStats(@PathVariable String userId) {
-    if (userId == null || !userId.matches("^[a-zA-Z0-9]+$")) {
-      return ResponseEntity.status(400).body("Invalid User ID format");
-    }
-
-    return ResponseEntity.ok(studentReadingService.getUserStats(userId));
+  public ResponseEntity<?> getUserStats(@AuthenticationPrincipal YomulPrincipal principal) {
+    return ResponseEntity.ok(studentReadingService.getUserStats(principal.userId()));
   }
 
   // get all readings
   @GetMapping
-  public ResponseEntity<List<Reading>> getAllReadings(@RequestHeader("userId") String userId) {
+  public ResponseEntity<List<Reading>> getAllReadings(@AuthenticationPrincipal YomulPrincipal principal) {
     return ResponseEntity.ok(studentReadingService.getAllReadings());
+  }
+
+  private boolean isValidId(String id) {
+    return id != null && id.matches("^[a-zA-Z0-9-]+$");
   }
 }
