@@ -53,20 +53,19 @@ public class SecurityConfig {
       SupabaseJwtFilter supabaseJwtFilter) throws Exception {
 
     http
-        .csrf(AbstractHttpConfigurer::disable)
+        .csrf(csrf -> csrf.disable())
         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
         .sessionManagement(session ->
             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
         .authorizeHttpRequests(auth -> auth
-            // ✅ Endpoint admin — hanya ADMIN
-            .requestMatchers("/api/admin/**").hasRole("ADMIN")
-            // ✅ Endpoint student — semua user terautentikasi
-            .requestMatchers("/api/student/**").authenticated()
-            // Actuator & lainnya boleh publik
-            .requestMatchers("/actuator/**").permitAll()
+            // 3. Pastikan permitAll() mencakup endpoint create
+            .requestMatchers("/api/admin/readings/**").permitAll()
             .anyRequest().permitAll()
-        )
-        .addFilterBefore(supabaseJwtFilter, UsernamePasswordAuthenticationFilter.class);
+        );
+
+    // .addFilterBefore(supabaseJwtFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
   }

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/api/student/readings")
 @RequiredArgsConstructor
 public class StudentReadingController {
@@ -26,10 +27,8 @@ public class StudentReadingController {
   private final StudentReadingService studentReadingService;
 
   @GetMapping("/{readingId}")
-  public ResponseEntity<?> getReading(@AuthenticationPrincipal YomulPrincipal principal,
+  public ResponseEntity<?> getReading(@RequestHeader(value = "userId") String userId,
                                       @PathVariable String readingId) {
-
-    String userId = principal.userId();
 
     if (!isValidId(readingId)) {
       return ResponseEntity.badRequest().body("Invalid Reading ID format");
@@ -49,10 +48,9 @@ public class StudentReadingController {
   }
 
   @PostMapping("/{readingId}/complete")
-  public ResponseEntity<String> completeQuiz(@AuthenticationPrincipal YomulPrincipal principal,
+  public ResponseEntity<String> completeQuiz(@RequestHeader String userId,
                                              @PathVariable String readingId,
                                              @RequestBody CompletedQuizRequest request) {
-    String userId = principal.userId();
 
     if (!isValidId(readingId)) {
       return ResponseEntity.badRequest().body("Invalid Reading ID format");
@@ -64,13 +62,13 @@ public class StudentReadingController {
   }
 
   @GetMapping("/stats/{userId}")
-  public ResponseEntity<?> getUserStats(@AuthenticationPrincipal YomulPrincipal principal) {
-    return ResponseEntity.ok(studentReadingService.getUserStats(principal.userId()));
+  public ResponseEntity<?> getUserStats(@PathVariable String userId) {
+    return ResponseEntity.ok(studentReadingService.getUserStats(userId));
   }
 
   // get all readings
   @GetMapping
-  public ResponseEntity<List<Reading>> getAllReadings(@AuthenticationPrincipal YomulPrincipal principal) {
+  public ResponseEntity<List<Reading>> getAllReadings() {
     return ResponseEntity.ok(studentReadingService.getAllReadings());
   }
 
