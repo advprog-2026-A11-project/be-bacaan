@@ -5,28 +5,31 @@ import id.ac.ui.cs.advprog.yomu.entity.Reading;
 import id.ac.ui.cs.advprog.yomu.service.AdminReadingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/readings")
-@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class AdminReadingController {
   private final AdminReadingService adminService;
 
   @PostMapping("/create")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Reading> create(@RequestBody ReadingRequest requestDto) {
     return ResponseEntity.ok(adminService.createReading(requestDto));
   }
 
   @GetMapping("/reading-list")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<List<Reading>> getAll() {
     return ResponseEntity.ok(adminService.findAll());
   }
 
   @PutMapping("/{id}")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> update(@PathVariable String id,
                                      @RequestBody ReadingRequest requestDto) {
     adminService.updateReading(id, requestDto);
@@ -34,6 +37,7 @@ public class AdminReadingController {
   }
 
   @DeleteMapping("/{id}")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> delete(@PathVariable String id) {
     adminService.deleteReading(id);
     return ResponseEntity.ok().build();
@@ -41,6 +45,7 @@ public class AdminReadingController {
 
   // catch previous data for update reading
   @GetMapping("/{id}")
+  @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Reading> getById(@PathVariable String id) {
     return ResponseEntity.ok(adminService.getById(id));
   }
