@@ -42,6 +42,7 @@ public class MultipleChoiceValidator implements QuizValidator {
       validateOptions(request.getOptions());
       question.setOptions(request.getOptions());
     }
+
     if (request.getCorrectAnswer() != null) {
       String normalized = normalizeAnswer(request.getCorrectAnswer());
       validateAnswerIndex(normalized, question.getOptions().size());
@@ -51,13 +52,18 @@ public class MultipleChoiceValidator implements QuizValidator {
 
   private void validateOptions(List<String> options) {
     if (options == null) {
-      throw new IllegalArgumentException("Options cannot be null for multiple choice question");
+      throw new IllegalArgumentException(
+          "Options cannot be null for multiple choice question");
     }
+
     if (options.size() < MIN_OPTIONS) {
-      throw new IllegalArgumentException("Multiple choice questions must have at least " + MIN_OPTIONS + " options");
+      throw new IllegalArgumentException(
+          "Multiple choice questions must have at least " + MIN_OPTIONS + " options");
     }
+
     if (options.size() > MAX_OPTIONS) {
-      throw new IllegalArgumentException("Multiple choice questions cannot have more than " + MAX_OPTIONS + " options");
+      throw new IllegalArgumentException(
+          "Multiple choice questions cannot have more than " + MAX_OPTIONS + " options");
     }
 
     for (int i = 0; i < options.size(); i++) {
@@ -65,25 +71,33 @@ public class MultipleChoiceValidator implements QuizValidator {
       if (option == null || option.trim().isEmpty()) {
         throw new IllegalArgumentException("Option " + (i + 1) + " cannot be empty");
       }
+
       if (option.length() > MAX_OPTION_LENGTH) {
-        throw new IllegalArgumentException("Option " + (i + 1) + " cannot exceed " + MAX_OPTION_LENGTH + " characters");
+        throw new IllegalArgumentException(
+            "Option " + (i + 1) + " cannot exceed " + MAX_OPTION_LENGTH + " characters");
       }
     }
   }
 
   private void validateCorrectAnswer(QuizQuestionRequest request) {
     if (request.getCorrectAnswer() == null || request.getCorrectAnswer().trim().isEmpty()) {
-      throw new IllegalArgumentException("Correct answer cannot be empty for multiple choice question");
+      throw new IllegalArgumentException(
+          "Correct answer cannot be empty for multiple choice question");
     }
+
     String normalizedAnswer = normalizeAnswer(request.getCorrectAnswer());
     validateAnswerIndex(normalizedAnswer, request.getOptions().size());
   }
 
   private String normalizeAnswer(String answer) {
-    if (answer == null) return null;
+    if (answer == null) {
+      return null;
+    }
+
     String trimmed = answer.trim().toUpperCase();
 
-    if (trimmed.length() == 1 && trimmed.charAt(0) >= 'A' && trimmed.charAt(0) <= 'F') {
+    if (trimmed.length() == 1 && trimmed.charAt(0) >= 'A' &&
+        trimmed.charAt(0) <= 'F') {
       return trimmed;
     }
 
@@ -109,10 +123,15 @@ public class MultipleChoiceValidator implements QuizValidator {
   }
 
   private int getAnswerIndex(String normalizedAnswer) {
-    if (normalizedAnswer == null || normalizedAnswer.isEmpty()) return -1;
-    if (normalizedAnswer.length() == 1 && normalizedAnswer.charAt(0) >= 'A' && normalizedAnswer.charAt(0) <= 'F') {
+    if (normalizedAnswer == null || normalizedAnswer.isEmpty()) {
+      return -1;
+    }
+
+    if (normalizedAnswer.length() == 1 &&
+        normalizedAnswer.charAt(0) >= 'A' && normalizedAnswer.charAt(0) <= 'F') {
       return normalizedAnswer.charAt(0) - 'A';
     }
+
     try {
       return Integer.parseInt(normalizedAnswer);
     } catch (NumberFormatException e) {
@@ -123,7 +142,10 @@ public class MultipleChoiceValidator implements QuizValidator {
   private String getOptionLetters(int count) {
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < count; i++) {
-      if (i > 0) sb.append(", ");
+      if (i > 0) {
+        sb.append(", ");
+      }
+
       sb.append((char) ('A' + i));
     }
     return sb.toString();

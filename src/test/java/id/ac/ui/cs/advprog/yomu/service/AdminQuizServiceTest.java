@@ -32,13 +32,13 @@ public class AdminQuizServiceTest {
 
   @Test
   void testAddQuestionShouldUseCorrectValidator() {
-    String readingId = "reading123";
     QuizQuestionRequest request = new QuizQuestionRequest();
     request.setQuestionType("MULTIPLE_CHOICE");
     request.setText("Test question?");
     request.setOptions(List.of("A", "B", "C"));
     request.setCorrectAnswer("A");
 
+    String readingId = "reading123";
     Reading reading = new Reading();
     reading.setId(readingId);
 
@@ -61,7 +61,7 @@ public class AdminQuizServiceTest {
   @Test
   void testAddQuestWithInvalidQuestType() {
     String readingId = "reading123";
-    QuizQuestionRequest request = new QuestionRequest();
+    QuizQuestionRequest request = new QuizQuestionRequest();
     request.setQuestionType("INVALID_TYPE");
 
     when(readingRepository.existsById(readingId)).thenReturn(true);

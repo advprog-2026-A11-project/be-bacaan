@@ -24,7 +24,8 @@ public class AdminQuizService {
   public Question addQuestion(String readingId, QuizQuestionRequest request) {
     validateReadingExists(readingId);
 
-    QuizValidator validator = validatorFactory.getValidator(request.getQuestionType());
+    QuizValidator validator = validatorFactory
+        .getValidator(request.getQuestionType());
     validator.validate(request);
 
     Reading reading = findReadingById(readingId);
@@ -47,7 +48,8 @@ public class AdminQuizService {
     if (request.getQuestionType() != null && !request.getQuestionType().isEmpty()
         && !request.getQuestionType().equals(question.getQuestionType())) {
 
-      QuizValidator newValidator = validatorFactory.getValidator(request.getQuestionType());
+      QuizValidator newValidator = validatorFactory
+          .getValidator(request.getQuestionType());
       request.setText(question.getText()); // Preserve text
       newValidator.validate(request);
 
@@ -56,7 +58,8 @@ public class AdminQuizService {
       newValidator.updateQuestion(question, request);
     } else {
       // Same type - use existing validator
-      QuizValidator validator = validatorFactory.getValidator(question.getQuestionType());
+      QuizValidator validator = validatorFactory
+          .getValidator(question.getQuestionType());
       validator.updateQuestion(question, request);
     }
 
@@ -66,7 +69,8 @@ public class AdminQuizService {
   @Transactional
   public void deleteQuestion(String questionId) {
     if (!quizRepository.existsById(questionId)) {
-      throw new IllegalArgumentException("Question not found with id: " + questionId);
+      throw new IllegalArgumentException(
+          "Question not found with id: " + questionId);
     }
     quizRepository.deleteById(questionId);
   }
@@ -98,18 +102,21 @@ public class AdminQuizService {
 
   private void validateReadingExists(String readingId) {
     if (!readingRepository.existsById(readingId)) {
-      throw new IllegalArgumentException("Reading not found with id: " + readingId);
+      throw new IllegalArgumentException(
+          "Reading not found with id: " + readingId);
     }
   }
 
   private Reading findReadingById(String readingId) {
     return readingRepository.findById(readingId)
-        .orElseThrow(() -> new IllegalArgumentException("Reading not found with id: " + readingId));
+        .orElseThrow(() -> new IllegalArgumentException(
+            "Reading not found with id: " + readingId));
   }
 
   private Question findQuestionById(String questionId) {
     return quizRepository.findById(questionId)
-        .orElseThrow(() -> new IllegalArgumentException("Question not found with id: " + questionId));
+        .orElseThrow(() -> new IllegalArgumentException(
+            "Question not found with id: " + questionId));
   }
 
   private void validateQuestionText(String text) {
@@ -117,10 +124,12 @@ public class AdminQuizService {
       throw new IllegalArgumentException("Question text cannot be empty");
     }
     if (text.length() < 5) {
-      throw new IllegalArgumentException("Question text must be at least 5 characters");
+      throw new IllegalArgumentException(
+          "Question text must be at least 5 characters");
     }
     if (text.length() > 500) {
-      throw new IllegalArgumentException("Question text cannot exceed 500 characters");
+      throw new IllegalArgumentException(
+          "Question text cannot exceed 500 characters");
     }
   }
 }

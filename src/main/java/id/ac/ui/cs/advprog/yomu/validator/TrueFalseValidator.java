@@ -36,21 +36,22 @@ public class TrueFalseValidator implements QuizValidator {
 
   @Override
   public void updateQuestion(Question question, QuizQuestionRequest request) {
-    if(request.getCorrectAnswer() != null) {
+    if (request.getCorrectAnswer() != null) {
       validateAnswer(request.getCorrectAnswer());
       question.setCorrectAnswer(capitalizeFirstLetter(request.getCorrectAnswer()));
     }
   }
-   private void validateAnswer(String answer) {
+
+  private void validateAnswer(String answer) {
     String normalized = answer.trim().toLowerCase();
-    if(!normalized.equals("true") && !normalized.equals("false")) {
+    if (!normalized.equals("true") && !normalized.equals("false")) {
       throw new IllegalArgumentException("True/False answer must be 'True' or 'False'");
     }
-   }
+  }
 
-   private String capitalizeFirstLetter(String text) {
+  private String capitalizeFirstLetter(String text) {
     if (text == null || text.isEmpty()) return text;
     String lower = text.trim().toLowerCase();
     return lower.substring(0, 1).toUpperCase() + lower.substring(1);
-   }
+  }
 }

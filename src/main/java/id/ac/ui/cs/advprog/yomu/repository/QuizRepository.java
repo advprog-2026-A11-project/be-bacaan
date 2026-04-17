@@ -17,6 +17,8 @@ public interface QuizRepository extends JpaRepository<Question, String> {
   List<Question> findAllByReadingId(@Param("readingId") String readingId);
 
   long countByReadingId(String readingId);
+
   Optional<Question> findByIdAndByReadingId(String id, String readingId);
+
   void deleteByReadingId(String readingId);
 }

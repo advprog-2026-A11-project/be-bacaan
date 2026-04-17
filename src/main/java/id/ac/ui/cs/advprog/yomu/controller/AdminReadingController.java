@@ -66,6 +66,4 @@ public class AdminReadingController {
     return ResponseEntity.ok(response);
   }
 
-
-
 }

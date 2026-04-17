@@ -12,16 +12,19 @@ public class BaseQuizValidator {
       throw new IllegalArgumentException("Question text cannot be empty");
     }
     if (text.length() < MIN_QUESTION_LENGTH) {
-      throw new IllegalArgumentException("Question text must be at least " + MIN_QUESTION_LENGTH + " characters");
+      throw new IllegalArgumentException(
+          "Question text must be at least " + MIN_QUESTION_LENGTH + " characters");
     }
     if (text.length() > MAX_QUESTION_LENGTH) {
-      throw new IllegalArgumentException("Question text cannot exceed " + MAX_QUESTION_LENGTH + " characters");
+      throw new IllegalArgumentException(
+          "Question text cannot exceed " + MAX_QUESTION_LENGTH + " characters");
     }
   }
 
   protected void validateCommon(QuizQuestionRequest request) {
     validateQuestionText(request.getText());
-    if (request.getQuestionType() == null || request.getQuestionType().isEmpty()) {
+    if (request.getQuestionType() == null ||
+        request.getQuestionType().isEmpty()) {
       throw new IllegalArgumentException("Quiz type cannot be empty");
     }
   }

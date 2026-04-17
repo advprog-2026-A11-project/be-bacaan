@@ -3,7 +3,6 @@ package id.ac.ui.cs.advprog.yomu.validator;
 import id.ac.ui.cs.advprog.yomu.dto.QuizQuestionRequest;
 import id.ac.ui.cs.advprog.yomu.entity.Question;
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 
@@ -17,14 +16,19 @@ public class EssayValidator implements QuizValidator {
 
   @Override
   public void validate(QuizQuestionRequest request) {
-    if (request.getCorrectAnswer() == null || request.getCorrectAnswer().trim().isEmpty()) {
-      throw new IllegalArgumentException("Sample answer cannot be empty for essay question");
+    if (request.getCorrectAnswer() == null ||
+        request.getCorrectAnswer().trim().isEmpty()) {
+      throw new IllegalArgumentException(
+          "Sample answer cannot be empty for essay question");
     }
     if (request.getCorrectAnswer().length() > MAX_ANSWER_LENGTH) {
-      throw new IllegalArgumentException("Sample answer cannot exceed " + MAX_ANSWER_LENGTH + " characters");
+      throw new IllegalArgumentException(
+          "Sample answer cannot exceed " + MAX_ANSWER_LENGTH + " characters");
     }
-    if (request.getOptions() != null && !request.getOptions().isEmpty()) {
-      throw new IllegalArgumentException("Essay questions should not have options");
+    if (request.getOptions() != null &&
+        !request.getOptions().isEmpty()) {
+      throw new IllegalArgumentException(
+          "Essay questions should not have options");
     }
   }
 
@@ -39,12 +43,12 @@ public class EssayValidator implements QuizValidator {
     return question;
   }
 
-
   @Override
   public void updateQuestion(Question question, QuizQuestionRequest request) {
     if (request.getCorrectAnswer() != null) {
       if (request.getCorrectAnswer().length() > MAX_ANSWER_LENGTH) {
-        throw new IllegalArgumentException("Sample answer cannot exceed " + MAX_ANSWER_LENGTH + " characters");
+        throw new IllegalArgumentException(
+            "Sample answer cannot exceed " + MAX_ANSWER_LENGTH + " characters");
       }
       question.setCorrectAnswer(request.getCorrectAnswer().trim());
     }
