@@ -2,13 +2,12 @@ package id.ac.ui.cs.advprog.yomu.controller;
 
 import id.ac.ui.cs.advprog.yomu.dto.CompletedQuizRequest;
 import id.ac.ui.cs.advprog.yomu.dto.ReadingResponse;
+import id.ac.ui.cs.advprog.yomu.dto.UserStatsResponse;
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
-import id.ac.ui.cs.advprog.yomu.security.YomulPrincipal;
 import id.ac.ui.cs.advprog.yomu.service.QuizService;
 import id.ac.ui.cs.advprog.yomu.service.StudentReadingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,15 +26,15 @@ public class StudentReadingController {
   private final StudentReadingService studentReadingService;
 
   @GetMapping("/{readingId}")
-  public ResponseEntity<?> getReading(@RequestHeader(value = "userId") String userId,
+  public ResponseEntity<ReadingResponse> getReading(@RequestHeader(value = "userId") String userId,
                                       @PathVariable String readingId) {
 
     if (!isValidId(userId)) {
-      return ResponseEntity.badRequest().body("Invalid User ID format");
+      throw new IllegalArgumentException("Invalid User ID format");
     }
 
     if (!isValidId(readingId)) {
-      return ResponseEntity.badRequest().body("Invalid Reading ID format");
+      throw new IllegalArgumentException("Invalid Reading ID format");
     }
 
     Reading reading = studentReadingService.getReading(userId, readingId);
@@ -70,7 +69,7 @@ public class StudentReadingController {
   }
 
   @GetMapping("/stats/{userId}")
-  public ResponseEntity<?> getUserStats(@PathVariable String userId) {
+  public ResponseEntity<UserStatsResponse> getUserStats(@PathVariable String userId) {
     return ResponseEntity.ok(studentReadingService.getUserStats(userId));
   }
 

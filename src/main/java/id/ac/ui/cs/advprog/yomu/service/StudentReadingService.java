@@ -1,5 +1,6 @@
 package id.ac.ui.cs.advprog.yomu.service;
 
+import id.ac.ui.cs.advprog.yomu.dto.UserStatsResponse;
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
 import id.ac.ui.cs.advprog.yomu.entity.UserProgress;
 import id.ac.ui.cs.advprog.yomu.repository.ReadingRepository;
@@ -27,7 +28,7 @@ public class StudentReadingService {
     return readingRepository.findAll();
   }
 
-  public Map<String, Object> getUserStats(String userId) {
+  public UserStatsResponse getUserStats(String userId) {
     List<UserProgress> progresses = userProgressRepository.findByUserId(userId);
 
     long totalCompleted = progresses.size();
@@ -42,6 +43,11 @@ public class StudentReadingService {
     stats.put("completionFrequency", totalCompleted);
     stats.put("averageAccuracy", avgAccuracy);
 
-    return stats;
+    return UserStatsResponse.builder()
+        .userId(userId)
+        .totalCompleted(totalCompleted)
+        .completionFrequency(totalCompleted)
+        .averageAccuracy(avgAccuracy)
+        .build();
   }
 }

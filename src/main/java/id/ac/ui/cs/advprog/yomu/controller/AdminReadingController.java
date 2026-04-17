@@ -5,9 +5,10 @@ import id.ac.ui.cs.advprog.yomu.dto.ReadingResponse;
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
 import id.ac.ui.cs.advprog.yomu.service.AdminReadingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -48,11 +49,11 @@ public class AdminReadingController {
   // catch previous data for update reading
   @GetMapping("/{id}")
   // @PreAuthorize("hasRole('ADMIN')")
-  public ResponseEntity<?> getById(@PathVariable String id) {
+  public ResponseEntity<ReadingResponse> getById(@PathVariable String id) {
     Reading reading = adminService.getById(id);
 
     if (reading == null) {
-      return ResponseEntity.notFound().build();
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Reading not found");
     }
 
     ReadingResponse response = ReadingResponse.builder()

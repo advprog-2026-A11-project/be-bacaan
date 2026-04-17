@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class AdminQuizServiceTest {
+class AdminQuizServiceTest {
 
   @Mock private QuizRepository questionRepository;
   @Mock private ReadingRepository readingRepository;
