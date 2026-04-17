@@ -30,6 +30,10 @@ public class StudentReadingController {
   public ResponseEntity<?> getReading(@RequestHeader(value = "userId") String userId,
                                       @PathVariable String readingId) {
 
+    if (!isValidId(userId)) {
+      return ResponseEntity.badRequest().body("Invalid User ID format");
+    }
+
     if (!isValidId(readingId)) {
       return ResponseEntity.badRequest().body("Invalid Reading ID format");
     }
@@ -51,6 +55,10 @@ public class StudentReadingController {
   public ResponseEntity<String> completeQuiz(@RequestHeader String userId,
                                              @PathVariable String readingId,
                                              @RequestBody CompletedQuizRequest request) {
+
+    if (!isValidId(userId)) {
+      return ResponseEntity.badRequest().body("Invalid User ID format");
+    }
 
     if (!isValidId(readingId)) {
       return ResponseEntity.badRequest().body("Invalid Reading ID format");

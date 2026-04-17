@@ -11,14 +11,14 @@ import java.util.Optional;
 
 @Repository
 public interface QuizRepository extends JpaRepository<Question, String> {
-  List<Question> findByReadingId(String id);
+  List<Question> findByReading_Id(String id);
 
   @Query("SELECT q from Question q WHERE q.reading.id = :readingId")
   List<Question> findAllByReadingId(@Param("readingId") String readingId);
 
-  long countByReadingId(String readingId);
+  long countByReading_Id(String readingId);
 
-  Optional<Question> findByIdAndByReadingId(String id, String readingId);
+  Optional<Question> findByIdAndReading_Id(String id, String readingId);
 
-  void deleteByReadingId(String readingId);
+  void deleteByReading_Id(String readingId);
 }

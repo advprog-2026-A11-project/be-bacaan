@@ -23,8 +23,8 @@ public class BaseQuizValidator {
 
   protected void validateCommon(QuizQuestionRequest request) {
     validateQuestionText(request.getText());
-    if (request.getQuestionType() == null ||
-        request.getQuestionType().isEmpty()) {
+    if (request.getQuestionType() == null
+        || request.getQuestionType().isEmpty()) {
       throw new IllegalArgumentException("Quiz type cannot be empty");
     }
   }

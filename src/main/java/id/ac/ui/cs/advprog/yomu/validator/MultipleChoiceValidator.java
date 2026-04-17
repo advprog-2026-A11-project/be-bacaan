@@ -96,8 +96,8 @@ public class MultipleChoiceValidator implements QuizValidator {
 
     String trimmed = answer.trim().toUpperCase();
 
-    if (trimmed.length() == 1 && trimmed.charAt(0) >= 'A' &&
-        trimmed.charAt(0) <= 'F') {
+    if (trimmed.length() == 1 && trimmed.charAt(0) >= 'A'
+        && trimmed.charAt(0) <= 'F') {
       return trimmed;
     }
 
@@ -127,8 +127,9 @@ public class MultipleChoiceValidator implements QuizValidator {
       return -1;
     }
 
-    if (normalizedAnswer.length() == 1 &&
-        normalizedAnswer.charAt(0) >= 'A' && normalizedAnswer.charAt(0) <= 'F') {
+    if (normalizedAnswer.length() == 1
+        && normalizedAnswer.charAt(0) >= 'A'
+        && normalizedAnswer.charAt(0) <= 'F') {
       return normalizedAnswer.charAt(0) - 'A';
     }
 

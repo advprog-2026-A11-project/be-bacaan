@@ -78,7 +78,7 @@ public class AdminQuizService {
   @Transactional
   public void deleteAllQuestionsForReading(String readingId) {
     validateReadingExists(readingId);
-    List<Question> questions = quizRepository.findByReadingId(readingId);
+    List<Question> questions = quizRepository.findByReading_Id(readingId);
     if (!questions.isEmpty()) {
       quizRepository.deleteAll(questions);
     }
@@ -86,7 +86,7 @@ public class AdminQuizService {
 
   public List<Question> getAllQuestionsForReading(String readingId) {
     validateReadingExists(readingId);
-    return quizRepository.findByReadingId(readingId);
+    return quizRepository.findByReading_Id(readingId);
   }
 
   public Question getQuestion(String questionId) {
@@ -95,7 +95,7 @@ public class AdminQuizService {
 
   public long getQuestionCountForReading(String readingId) {
     validateReadingExists(readingId);
-    return quizRepository.countByReadingId(readingId);
+    return quizRepository.countByReading_Id(readingId);
   }
 
   // ==================== PRIVATE METHODS ====================

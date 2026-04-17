@@ -16,8 +16,8 @@ public class EssayValidator implements QuizValidator {
 
   @Override
   public void validate(QuizQuestionRequest request) {
-    if (request.getCorrectAnswer() == null ||
-        request.getCorrectAnswer().trim().isEmpty()) {
+    if (request.getCorrectAnswer() == null
+        || request.getCorrectAnswer().trim().isEmpty()) {
       throw new IllegalArgumentException(
           "Sample answer cannot be empty for essay question");
     }
@@ -25,8 +25,8 @@ public class EssayValidator implements QuizValidator {
       throw new IllegalArgumentException(
           "Sample answer cannot exceed " + MAX_ANSWER_LENGTH + " characters");
     }
-    if (request.getOptions() != null &&
-        !request.getOptions().isEmpty()) {
+    if (request.getOptions() != null
+        && !request.getOptions().isEmpty()) {
       throw new IllegalArgumentException(
           "Essay questions should not have options");
     }

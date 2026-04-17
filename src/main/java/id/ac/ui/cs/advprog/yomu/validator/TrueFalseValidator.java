@@ -50,7 +50,10 @@ public class TrueFalseValidator implements QuizValidator {
   }
 
   private String capitalizeFirstLetter(String text) {
-    if (text == null || text.isEmpty()) return text;
+    if (text == null || text.isEmpty()) {
+      return text;
+    }
+
     String lower = text.trim().toLowerCase();
     return lower.substring(0, 1).toUpperCase() + lower.substring(1);
   }
