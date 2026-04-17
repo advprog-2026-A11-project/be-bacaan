@@ -6,13 +6,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -55,16 +53,19 @@ public class SecurityConfig {
       SupabaseJwtFilter supabaseJwtFilter) throws Exception {
 
     http
-        // Disable CSRF because we use stateless JWT authentication (no session/cookies)
-        .csrf(AbstractHttpConfigurer::disable)
+        .csrf(csrf -> csrf.disable())
+        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
         .sessionManagement(session ->
             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/admin/**").hasRole("ADMIN")
-            .requestMatchers("/api/student/**").authenticated()
+            // 3. Pastikan permitAll() mencakup endpoint create
+            .requestMatchers("/api/admin/readings/**").permitAll()
             .anyRequest().permitAll()
-        )
-        .addFilterBefore(supabaseJwtFilter, UsernamePasswordAuthenticationFilter.class);
+        );
+
+    // .addFilterBefore(supabaseJwtFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
   }
