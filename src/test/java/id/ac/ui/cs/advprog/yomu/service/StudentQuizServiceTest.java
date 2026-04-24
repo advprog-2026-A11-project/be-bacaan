@@ -77,7 +77,7 @@ public class StudentQuizServiceTest {
         .thenReturn(List.of(questionMultipleChoice, questionTrueFalse));
 
     // WHEN: student minta soal
-    List<Question> result = studentQuizService.getQuizQuestions(userId, readingId);
+    List<Question> result = studentQuizService.getQuizQuestion(userId, readingId);
 
     // THEN: harus dapat 2 soal
     assertThat(result).isNotNull();
@@ -98,7 +98,7 @@ public class StudentQuizServiceTest {
 
     // throw exception, jangan kasih soal lagi
     assertThatThrownBy(() ->
-        studentQuizService.getQuizQuestions(userId, readingId))
+        studentQuizService.getQuizQuestion(userId, readingId))
         .isInstanceOf(IllegalStateException.class)
         .hasMessageContaining("You've completed this quiz");
 
@@ -116,7 +116,7 @@ public class StudentQuizServiceTest {
         .thenReturn(List.of());  // kosong
 
     // WHEN
-    List<Question> result = studentQuizService.getQuizQuestions(userId, readingId);
+    List<Question> result = studentQuizService.getQuizQuestion(userId, readingId);
 
     assertThat(result).isNotNull();
     assertThat(result).isEmpty();

@@ -20,30 +20,33 @@ public class StudentQuizService {
   private final QuizService quizService;
 
   public List<Question> getQuizQuestion(String userId, String readingId) {
-    if (userProgressRepository.existsByUserIdAndReadingId(userId, readingId)) {
-      throw new IllegalStateException(
-          "You've completed this quiz"
-      );
-    }
-
+    validateNotCompleted(userId, readingId);
     return quizRepository.findByReadingId(readingId);
   }
 
   public QuizSubmitResponse submitQuiz(String userId, String readingId,
                                        QuizSubmitRequest request) {
 
+    validateNotCompleted(userId, readingId);
+    validateRequest(request);
+
     List<Question> questions = quizRepository.findByReadingId(readingId);
+
+    if (questions.isEmpty()) {
+      throw new IllegalStateException("No quiz available for this reading");
+    }
 
     Map<String, String> studentAnswers = request.getAnswers();
 
     int correctCount = 0;
     Map<String, Boolean> questionResults = new HashMap<>();
+
     for (Question question : questions) {
       String questId = question.getId();
       String studentAnswer = studentAnswers.get(questId);
       String correctAnswer = question.getCorrectAnswer();
-
       boolean isCorrect = isAnswerCorrect(studentAnswer, correctAnswer);
+
       questionResults.put(questId, isCorrect);
 
       if(isCorrect) {
@@ -52,13 +55,8 @@ public class StudentQuizService {
     }
 
     int totalQuestions = questions.size();
-    int score = 0;
-    double accuracy = 0.0;
-
-    if (totalQuestions > 0) {
-      score = (int) Math.round((double) correctCount / totalQuestions * 100);
-      accuracy = (double) correctCount / totalQuestions;
-    }
+    int score = (int) Math.round((double) correctCount / totalQuestions * 100);
+    double accuracy = (double) correctCount / totalQuestions;
 
     quizService.completeQuiz(userId, readingId, score, accuracy);
 
@@ -73,6 +71,18 @@ public class StudentQuizService {
   }
 
   // private helper method
+  private void validateNotCompleted(String userId, String readingId) {
+    if (userProgressRepository.existsByUserIdAndReadingId(userId, readingId)) {
+      throw new IllegalStateException("You've completed this quiz");
+    }
+  }
+
+  private void validateRequest(QuizSubmitRequest request) {
+    if (request == null || request.getAnswers() == null) {
+      throw new IllegalStateException("Please choose the answers before submit the quiz");
+    }
+  }
+
   private boolean isAnswerCorrect(String studentAnswer, String correctAnswer) {
     if(studentAnswer == null || correctAnswer == null) {
       return false;
