@@ -4,6 +4,7 @@ import id.ac.ui.cs.advprog.yomu.dto.QuizQuestionResponse;
 import id.ac.ui.cs.advprog.yomu.dto.QuizSubmitRequest;
 import id.ac.ui.cs.advprog.yomu.dto.QuizSubmitResponse;
 import id.ac.ui.cs.advprog.yomu.entity.Question;
+import id.ac.ui.cs.advprog.yomu.service.StudentQuizService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +25,7 @@ public class StudentQuizController {
       @RequestHeader("userId") String userId,
       @PathVariable String readingId) {
 
-    List<Question> questions = studentQuizService.getQuizQuestions(userId, readingId);
+    List<Question> questions = studentQuizService.getQuizQuestion(userId, readingId);
     List<QuizQuestionResponse> responses = questions.stream()
         .map(this::mapToStudentResponse)
         .collect(Collectors.toList());
