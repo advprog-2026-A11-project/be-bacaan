@@ -8,12 +8,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-@RequiredArgsConstructor
 public class QuizValidatorFactory {
 
-  private final Map<String, QuizValidator> validators = new ConcurrentHashMap<>();
+  private final Map<String, QuizValidator> validators;
 
   public QuizValidatorFactory(List<QuizValidator> validatorList) {
+    this.validators = new ConcurrentHashMap<>();
     for (QuizValidator validator : validatorList) {
       validators.put(validator.getQuestionType(), validator);
     }
