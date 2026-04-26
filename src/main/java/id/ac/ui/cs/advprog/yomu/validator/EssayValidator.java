@@ -3,9 +3,10 @@ package id.ac.ui.cs.advprog.yomu.validator;
 import id.ac.ui.cs.advprog.yomu.dto.QuizQuestionRequest;
 import id.ac.ui.cs.advprog.yomu.entity.Question;
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
-
+import org.springframework.stereotype.Component;
 import java.util.List;
 
+@Component
 public class EssayValidator implements QuizValidator {
   private static final int MAX_ANSWER_LENGTH = 1000;
 
