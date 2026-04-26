@@ -25,6 +25,11 @@ public class StudentQuizController {
       @RequestHeader("userId") String userId,
       @PathVariable String readingId) {
 
+    // userId validation
+    if (userId == null || !userId.matches("^[a-zA-Z0-9-]+$")) {
+      throw new IllegalArgumentException("Invalid user id format");
+    }
+
     List<Question> questions = studentQuizService.getQuizQuestion(userId, readingId);
     List<QuizQuestionResponse> responses = questions.stream()
         .map(this::mapToStudentResponse)
@@ -38,6 +43,11 @@ public class StudentQuizController {
       @RequestHeader("userId") String userId,
       @PathVariable String readingId,
       @Valid @RequestBody QuizSubmitRequest request) {
+
+    // userId validation
+    if (userId == null || !userId.matches("^[a-zA-Z0-9-]+$")) {
+      throw new IllegalArgumentException("Invalid user id format");
+    }
 
     QuizSubmitResponse response = studentQuizService.submitQuiz(userId, readingId, request);
     return ResponseEntity.ok(response);

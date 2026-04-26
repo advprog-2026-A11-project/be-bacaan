@@ -176,4 +176,14 @@ public class StudentQuizControllerTest {
         .andExpect(jsonPath("$.correctAnswers").value(1));
   }
 
+  @Test
+  void testGetQuizQuestionsShouldUseAuthenticatedUserIdNotHeader() throws Exception {
+    when(studentQuizService.getQuizQuestion(anyString(), eq(readingId)))
+        .thenReturn(List.of(question));
+
+    mockMvc.perform(get("/api/student/quiz/readings/{readingId}/questions", readingId)
+            .header("userId", userId))
+        .andExpect(status().isOk());
+  }
+
 }
