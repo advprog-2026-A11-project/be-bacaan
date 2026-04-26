@@ -21,8 +21,18 @@ public class AdminReadingController {
 
   @PostMapping("/create")
   // @PreAuthorize("hasAuthority('ADMIN')")
-  public ResponseEntity<Reading> create(@RequestBody ReadingRequest requestDto) {
-    return ResponseEntity.ok(adminService.createReading(requestDto));
+  public ResponseEntity<ReadingResponse> create(@RequestBody ReadingRequest requestDto) {
+    Reading reading = adminService.createReading(requestDto);
+
+    ReadingResponse response = ReadingResponse.builder()
+        .id(reading.getId())
+        .title(reading.getTitle())
+        .content(reading.getContent())
+        .category(reading.getCategory())
+        .difficultyLevel(reading.getDifficultyLevel())
+        .build();
+
+    return ResponseEntity.ok(response);
   }
 
   @GetMapping("/reading-list")

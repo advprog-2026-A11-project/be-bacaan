@@ -62,7 +62,9 @@ class AdminReadingControllerTest {
         .andExpect(jsonPath("$.title").value("Test Title"))
         .andExpect(jsonPath("$.content").value("Test Content"))
         .andExpect(jsonPath("$.category").value("Science"))
-        .andExpect(jsonPath("$.difficultyLevel").value("Medium"));
+        .andExpect(jsonPath("$.difficultyLevel").value("Medium"))
+        .andExpect(jsonPath("$.questions").doesNotExist());
+
 
     verify(adminService, times(1)).createReading(any(ReadingRequest.class));
   }
