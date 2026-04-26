@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Optional;
 
@@ -25,6 +26,9 @@ class QuizServiceTest {
 
   @Mock
   private ApplicationEventPublisher eventPublisher;
+
+  @Mock
+  private RestTemplate restTemplate;
 
   @InjectMocks
   private QuizService quizService;
@@ -181,5 +185,20 @@ class QuizServiceTest {
         .completeQuiz(null, "reading-456", score, accuracy));
     assertThrows(IllegalArgumentException.class, () -> quizService
         .completeQuiz("user123", null, score, accuracy));
+  }
+
+  @Test
+  void testCompleteQuizStillSucceedsWhenAchievementServiceFails() {
+    String userId = "user-123";
+    String readingId = "reading-456";
+
+    when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
+        .thenReturn(false);
+
+    when(restTemplate.postForObject(anyString(), any(), eq(String.class)))
+        .thenThrow(new RuntimeException("Achievement service down!"));
+
+    assertDoesNotThrow(() -> quizService.completeQuiz(userId, readingId, 80, 0.8));
+    verify(userProgressRepository, times(1)).save(any(UserProgress.class));
   }
 }
