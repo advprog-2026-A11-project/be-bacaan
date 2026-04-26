@@ -2,10 +2,12 @@ package id.ac.ui.cs.advprog.yomu.controller;
 
 import id.ac.ui.cs.advprog.yomu.dto.CompletedQuizRequest;
 import id.ac.ui.cs.advprog.yomu.dto.ReadingResponse;
+import id.ac.ui.cs.advprog.yomu.dto.UserStatsResponse;
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
 import id.ac.ui.cs.advprog.yomu.service.QuizService;
 import id.ac.ui.cs.advprog.yomu.service.StudentReadingService;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.junit.jupiter.api.BeforeEach;
@@ -196,10 +198,12 @@ class StudentReadingControllerTest {
     String invalidUserId = "user 123!";
     String readingId = "reading456";
 
-    ResponseEntity<?> response = readingController.getReading(invalidUserId, readingId);
+    IllegalArgumentException exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> readingController.getReading(invalidUserId, readingId)
+    );
 
-    assertEquals(400, response.getStatusCodeValue());
-    assertEquals("Invalid User ID format", response.getBody());
+    assertEquals("Invalid User ID format", exception.getMessage());
     verify(studentReadingService, never()).getReading(anyString(), anyString());
   }
 
@@ -208,10 +212,12 @@ class StudentReadingControllerTest {
     String userId = "user123";
     String invalidReadingId = "reading 456!";
 
-    ResponseEntity<?> response = readingController.getReading(userId, invalidReadingId);
+    IllegalArgumentException exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> readingController.getReading(userId, invalidReadingId)
+    );
 
-    assertEquals(400, response.getStatusCodeValue());
-    assertEquals("Invalid Reading ID format", response.getBody());
+    assertEquals("Invalid Reading ID format", exception.getMessage());
     verify(studentReadingService, never()).getReading(anyString(), anyString());
   }
 
@@ -239,5 +245,27 @@ class StudentReadingControllerTest {
     mockMvc.perform(get("/api/student/readings")
             .header("userId", "user123"))
         .andExpect(status().isOk());
+  }
+
+  @Test
+  void testGetUserStatsSuccess() {
+    String userId = "user-123";
+
+    UserStatsResponse mockResponse = UserStatsResponse.builder()
+        .totalCompleted(10)
+        .completionFrequency(50)
+        .averageAccuracy(85.0)
+        .build();
+
+    when(studentReadingService.getUserStats(userId)).thenReturn(mockResponse);
+
+
+    ResponseEntity<UserStatsResponse> response =
+        readingController.getUserStats(userId);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(mockResponse, response.getBody());
+
+    verify(studentReadingService, times(1)).getUserStats(userId);
   }
 }
