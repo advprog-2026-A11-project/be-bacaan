@@ -16,7 +16,6 @@ public class QuizQuestionRequest {
   private String text;
 
   // pilihan ganda
-  @NotNull(message = "Options cannot be null for multiple choice")
   @Size(min = 2, message = "Multiple choice questions must have at least 2 options")
   @Size(max = 4, message = "Maximum 4 options allowed")
   private List<@NotBlank String> options;
