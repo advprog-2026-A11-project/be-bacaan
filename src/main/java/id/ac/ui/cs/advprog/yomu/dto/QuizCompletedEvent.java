@@ -1,11 +1,11 @@
 package id.ac.ui.cs.advprog.yomu.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import java.util.UUID;
 
-@Setter
-@Getter
+@Data
 public class QuizCompletedEvent {
+  private String eventId;
   private String userId;
   private int score;
   private double accuracy;
@@ -13,6 +13,7 @@ public class QuizCompletedEvent {
   public QuizCompletedEvent() {}
 
   public QuizCompletedEvent(String userId, int score, double accuracy) {
+    this.eventId = UUID.randomUUID().toString();
     this.userId = userId;
     this.score = score;
     this.accuracy = accuracy;
