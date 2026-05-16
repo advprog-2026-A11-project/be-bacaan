@@ -1,6 +1,5 @@
 package id.ac.ui.cs.advprog.yomu.validator;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
