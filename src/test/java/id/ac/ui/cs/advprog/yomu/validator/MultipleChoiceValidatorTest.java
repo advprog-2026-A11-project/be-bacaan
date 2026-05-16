@@ -101,6 +101,23 @@ class MultipleChoiceValidatorTest {
     }
 
     @Test
+    void validateNullOptionTest() {
+        QuizQuestionRequest request = new QuizQuestionRequest();
+        request.setOptions(java.util.Arrays.asList("Option 1", null));
+        request.setCorrectAnswer("A");
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> validator.validate(request)
+        );
+
+        assertEquals(
+            "Option 2 cannot be empty",
+            exception.getMessage()
+        );
+    }
+
+    @Test
     void validateBlankOptionTest() {
         QuizQuestionRequest request = new QuizQuestionRequest();
         request.setOptions(List.of("Option 1", "   "));
@@ -154,6 +171,23 @@ class MultipleChoiceValidatorTest {
     }
 
     @Test
+    void validateWhitespaceCorrectAnswer() {
+        QuizQuestionRequest request = new QuizQuestionRequest();
+        request.setOptions(List.of("A", "B"));
+        request.setCorrectAnswer("   ");
+
+        IllegalArgumentException exception = assertThrows(
+            IllegalArgumentException.class,
+            () -> validator.validate(request)
+        );
+
+        assertEquals(
+            "Correct answer cannot be empty for multiple choice question",
+            exception.getMessage()
+        );
+    }
+
+    @Test
     void validateInvalidCorrectAnswer() {
         QuizQuestionRequest request = new QuizQuestionRequest();
         request.setOptions(List.of("A", "B"));
@@ -180,6 +214,51 @@ class MultipleChoiceValidatorTest {
     }
 
     @Test
+    void validateNumericNegative_shouldThrowException() {
+        QuizQuestionRequest request = new QuizQuestionRequest();
+        request.setOptions(List.of("A", "B"));
+        request.setCorrectAnswer("-1");
+
+        assertThrows(IllegalArgumentException.class, () -> validator.validate(request));
+    }
+
+    @Test
+    void validateNonNumericLong_shouldThrowException() {
+        QuizQuestionRequest request = new QuizQuestionRequest();
+        request.setOptions(List.of("A", "B"));
+        request.setCorrectAnswer("INVALID_LONG");
+
+        assertThrows(IllegalArgumentException.class, () -> validator.validate(request));
+    }
+
+    @Test
+    void validateSingleCharOutOfRange_shouldThrowException() {
+        QuizQuestionRequest request = new QuizQuestionRequest();
+        request.setOptions(List.of("A", "B"));
+        request.setCorrectAnswer("G"); // Out of A-F
+
+        assertThrows(IllegalArgumentException.class, () -> validator.validate(request));
+    }
+
+    @Test
+    void validateSingleCharBeforeA_shouldThrowException() {
+        QuizQuestionRequest request = new QuizQuestionRequest();
+        request.setOptions(List.of("A", "B"));
+        request.setCorrectAnswer("@");
+
+        assertThrows(IllegalArgumentException.class, () -> validator.validate(request));
+    }
+
+    @Test
+    void validateNumericOutOfRange_shouldThrowException() {
+        QuizQuestionRequest request = new QuizQuestionRequest();
+        request.setOptions(List.of("A", "B"));
+        request.setCorrectAnswer("6");
+
+        assertThrows(IllegalArgumentException.class, () -> validator.validate(request));
+    }
+
+    @Test
     void createQuestionTest() {
         QuizQuestionRequest request = new QuizQuestionRequest();
         request.setText("What is Java?");
@@ -197,10 +276,17 @@ class MultipleChoiceValidatorTest {
         assertEquals(reading, question.getReading());
     }
 
-    
+    @Test
+    void createQuestion_withNullAnswer_shouldReturnNullAnswer() {
+        QuizQuestionRequest request = new QuizQuestionRequest();
+        request.setCorrectAnswer(null);
+        Question question = validator.createQuestion(request, new Reading());
+        assertNull(question.getCorrectAnswer());
+    }
+
 
     @Test
-    void updateQuestionVlidOptions() {
+    void updateQuestionValidOptions() {
         Question question = new Question();
         question.setOptions(List.of("Old A", "Old B"));
 
@@ -213,6 +299,16 @@ class MultipleChoiceValidatorTest {
                 List.of("New A", "New B", "New C"),
                 question.getOptions()
         );
+    }
+
+    @Test
+    void updateQuestion_withEmptyAnswer_shouldThrowException() {
+        Question question = new Question();
+        question.setOptions(List.of("A", "B"));
+        QuizQuestionRequest request = new QuizQuestionRequest();
+        request.setCorrectAnswer("");
+
+        assertThrows(IllegalArgumentException.class, () -> validator.updateQuestion(question, request));
     }
 
     @Test
@@ -273,5 +369,21 @@ class MultipleChoiceValidatorTest {
         validator.updateQuestion(question, request);
 
         assertEquals(List.of("A", "B"), question.getOptions());
+    }
+
+    @Test
+    void reachUnreachableNullCheck() {
+        Question question = new Question();
+        question.setOptions(List.of("A", "B"));
+        
+        QuizQuestionRequest hackRequest = new QuizQuestionRequest() {
+            private int count = 0;
+            @Override
+            public String getCorrectAnswer() {
+                return (count++ == 0) ? "A" : null;
+            }
+        };
+        
+        assertThrows(IllegalArgumentException.class, () -> validator.updateQuestion(question, hackRequest));
     }
 }

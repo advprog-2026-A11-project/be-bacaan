@@ -17,48 +17,66 @@ class QuizValidatorFactoryTest {
 
     @BeforeEach
     void setUp() {
+
         multipleChoiceValidator = mock(QuizValidator.class);
         essayValidator = mock(QuizValidator.class);
 
-        when(multipleChoiceValidator.getQuestionType()).thenReturn("MULTIPLE_CHOICE");
+        when(multipleChoiceValidator.getQuestionType())
+                .thenReturn("MULTIPLE_CHOICE");
 
-        when(essayValidator.getQuestionType()).thenReturn("ESSAY");
+        when(essayValidator.getQuestionType())
+                .thenReturn("ESSAY");
 
-        factory = new QuizValidatorFactory(List.of(multipleChoiceValidator, essayValidator));
+        factory = new QuizValidatorFactory(
+                List.of(multipleChoiceValidator, essayValidator)
+        );
     }
 
     @Test
-    void getValidator_whenValidMultipleChoice_shouldReturnValidator() {
-        QuizValidator result = factory.getValidator("MULTIPLE_CHOICE");
+    void getValidator_shouldReturnMultipleChoiceValidator() {
+
+        QuizValidator result =
+                factory.getValidator("MULTIPLE_CHOICE");
 
         assertNotNull(result);
-        assertEquals(multipleChoiceValidator, result);
+        assertSame(multipleChoiceValidator, result);
     }
 
     @Test
-    void getValidator_whenValidEssay_shouldReturnValidator() {
-        QuizValidator result = factory.getValidator("ESSAY");
+    void getValidator_shouldReturnEssayValidator() {
+
+        QuizValidator result =
+                factory.getValidator("ESSAY");
 
         assertNotNull(result);
-        assertEquals(essayValidator, result);
+        assertSame(essayValidator, result);
     }
 
     @Test
-    void getValidator_whenInvalidQuizType_shouldThrowException() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-            () -> factory.getValidator("INVALID"));
+    void getValidator_shouldThrowExceptionWhenInvalidQuizType() {
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> factory.getValidator("INVALID")
+        );
 
         assertEquals(
-            "Invalid quiz typeINVALID. Must be MULTIPLE_CHOICE, TRUE_FALSE, ESSAY",
-            exception.getMessage());
+                "Invalid quiz typeINVALID. Must be MULTIPLE_CHOICE, TRUE_FALSE, ESSAY",
+                exception.getMessage()
+        );
     }
 
     @Test
-    void constructor_shouldStoreAllValidators() {
-        QuizValidator result1 = factory.getValidator("MULTIPLE_CHOICE");
-        QuizValidator result2 = factory.getValidator("ESSAY");
+    void constructor_shouldStoreAllValidatorsCorrectly() {
 
-        assertEquals(multipleChoiceValidator, result1);
-        assertEquals(essayValidator, result2);
+        assertSame(
+                multipleChoiceValidator,
+                factory.getValidator("MULTIPLE_CHOICE")
+        );
+
+        assertSame(
+                essayValidator,
+                factory.getValidator("ESSAY")
+        );
     }
 }

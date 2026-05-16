@@ -1,0 +1,12 @@
+.gradle
+build
+bin
+out
+.idea
+.vscode
+.git
+.github
+node_modules
+*.log
+.env.local
+gradle/verification-metadata.xml
