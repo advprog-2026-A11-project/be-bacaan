@@ -115,6 +115,15 @@ class EssayValidatorTest {
     }
 
     @Test
+    void validateNullOptionsTest() {
+        QuizQuestionRequest request = new QuizQuestionRequest();
+        request.setCorrectAnswer("Valid answer");
+        request.setOptions(null);
+
+        assertDoesNotThrow(() -> validator.validate(request));
+    }
+
+    @Test
     void createQuestionTest() {
         QuizQuestionRequest request = new QuizQuestionRequest();
         request.setText("Explain polymorphism");
