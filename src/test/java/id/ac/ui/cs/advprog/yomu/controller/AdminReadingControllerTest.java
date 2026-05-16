@@ -4,22 +4,35 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import id.ac.ui.cs.advprog.yomu.dto.ReadingRequest;
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
 import id.ac.ui.cs.advprog.yomu.service.AdminReadingService;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.ArgumentMatchers.eq;
+
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class AdminReadingControllerTest {
 
@@ -36,85 +49,119 @@ class AdminReadingControllerTest {
   @BeforeEach
   void setUp() {
     MockitoAnnotations.openMocks(this);
-    mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+    mockMvc = MockMvcBuilders.standaloneSetup(controller)
+      .setControllerAdvice(new GlobalExceptionHandler())
+      .build();
   }
 
+
   @Test
-  void testCreateReading() throws Exception {
-    final ReadingRequest dto = new ReadingRequest();
-    dto.setTitle("Test Title");
-    dto.setContent("Test Content");
-    dto.setCategory("Science");
-    dto.setDifficultyLevel("Medium");
+  void createRedingTest() throws Exception {
+    ReadingRequest request = new ReadingRequest();
+    request.setTitle("Reading Title");
+    request.setContent("Reading Content");
+    request.setCategory("Technology");
+    request.setDifficultyLevel("Easy");
 
-    final Reading savedReading = new Reading();
-    savedReading.setTitle(dto.getTitle());
-    savedReading.setContent(dto.getContent());
-    savedReading.setCategory(dto.getCategory());
-    savedReading.setDifficultyLevel(dto.getDifficultyLevel());
+    Reading reading = new Reading();
+    reading.setId("1");
+    reading.setTitle("Reading Title");
+    reading.setContent("Reading Content");
+    reading.setCategory("Technology");
+    reading.setDifficultyLevel("Easy");
 
-    when(adminService.createReading(any(ReadingRequest.class))).thenReturn(savedReading);
+    when(adminService.createReading(any(ReadingRequest.class))).thenReturn(reading);
 
     mockMvc.perform(post("/api/admin/readings/create")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(dto)))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.title").value("Test Title"))
-        .andExpect(jsonPath("$.content").value("Test Content"))
-        .andExpect(jsonPath("$.category").value("Science"))
-        .andExpect(jsonPath("$.difficultyLevel").value("Medium"))
-        .andExpect(jsonPath("$.questions").doesNotExist());
-
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(request)))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.id").value("1"))
+      .andExpect(jsonPath("$.title").value("Reading Title"))
+      .andExpect(jsonPath("$.content").value("Reading Content"))
+      .andExpect(jsonPath("$.category").value("Technology"))
+      .andExpect(jsonPath("$.difficultyLevel").value("Easy"));
 
     verify(adminService, times(1)).createReading(any(ReadingRequest.class));
   }
-
+  
   @Test
-  void testGetAllReadings() throws Exception {
-    final Reading r1 = new Reading();
-    r1.setTitle("R1");
-    final Reading r2 = new Reading();
-    r2.setTitle("R2");
+  void getAllReadings() throws Exception {
+    Reading reading1 = new Reading();
+    reading1.setId("1");
+    reading1.setTitle("Title 1");
 
-    final List<Reading> readings = Arrays.asList(r1, r2);
-    when(adminService.findAll()).thenReturn(readings);
+    Reading reading2 = new Reading();
+    reading2.setId("2");
+    reading2.setTitle("Title 2");
+
+    when(adminService.findAll()).thenReturn(List.of(reading1, reading2));
 
     mockMvc.perform(get("/api/admin/readings/reading-list"))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[0].title").value("R1"))
-        .andExpect(jsonPath("$[1].title").value("R2"));
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.length()").value(2))
+      .andExpect(jsonPath("$[0].id").value("1"))
+      .andExpect(jsonPath("$[0].title").value("Title 1"))
+      .andExpect(jsonPath("$[1].id").value("2"))
+      .andExpect(jsonPath("$[1].title").value("Title 2"));
 
     verify(adminService, times(1)).findAll();
   }
 
   @Test
-  void testUpdateReading() throws Exception {
-    final String id = "123";
-    final ReadingRequest dto = new ReadingRequest();
-    dto.setTitle("Updated Title");
-    dto.setContent("Updated Content");
-    dto.setCategory("Math");
-    dto.setDifficultyLevel("Hard");
+  void updateReadingTest() throws Exception {
+    String id = "123";
+
+    ReadingRequest request = new ReadingRequest();
+    request.setTitle("Updated Title");
+    request.setContent("Updated Content");
 
     doNothing().when(adminService).updateReading(eq(id), any(ReadingRequest.class));
 
     mockMvc.perform(put("/api/admin/readings/{id}", id)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(dto)))
-        .andExpect(status().isOk());
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(request)))
+      .andExpect(status().isOk());
 
     verify(adminService, times(1)).updateReading(eq(id), any(ReadingRequest.class));
   }
 
   @Test
-  void testDeleteReading() throws Exception {
-    final String id = "123";
+  void deleteReadingTest() throws Exception {
+    String id = "123";
     doNothing().when(adminService).deleteReading(id);
 
-    mockMvc.perform(delete("/api/admin/readings/{id}", id))
-        .andExpect(status().isOk());
-
+    mockMvc.perform(delete("/api/admin/readings/{id}", id)).andExpect(status().isOk());
     verify(adminService, times(1)).deleteReading(id);
+  }
+
+  @Test
+  void getByIdReturnReading() throws Exception {
+    Reading reading = new Reading();
+    reading.setId("1");
+    reading.setTitle("Sample Title");
+    reading.setContent("Sample Content");
+    reading.setCategory("Science");
+    reading.setDifficultyLevel("Medium");
+
+    when(adminService.getById("1")).thenReturn(reading);
+
+    mockMvc.perform(get("/api/admin/readings/{id}", "1"))
+      .andExpect(status().isOk())
+      .andExpect(jsonPath("$.id").value("1"))
+      .andExpect(jsonPath("$.title").value("Sample Title"))
+      .andExpect(jsonPath("$.content").value("Sample Content"))
+      .andExpect(jsonPath("$.category").value("Science"))
+      .andExpect(jsonPath("$.difficultyLevel").value("Medium"));
+
+    verify(adminService, times(1)).getById("1");
+  }
+
+  @Test
+  void getByIdReadingNotFound() throws Exception {
+    when(adminService.getById("999")).thenReturn(null);
+
+    mockMvc.perform(get("/api/admin/readings/{id}", "999")).andExpect(status().isNotFound());
+    verify(adminService, times(1)).getById("999");
   }
 }

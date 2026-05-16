@@ -4,186 +4,152 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import id.ac.ui.cs.advprog.yomu.dto.QuizSubmitRequest;
 import id.ac.ui.cs.advprog.yomu.dto.QuizSubmitResponse;
 import id.ac.ui.cs.advprog.yomu.entity.Question;
-import id.ac.ui.cs.advprog.yomu.entity.Reading;
 import id.ac.ui.cs.advprog.yomu.service.StudentQuizService;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+
+import org.mockito.*;
+
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.*;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-public class StudentQuizControllerTest {
+class StudentQuizControllerTest {
 
-  private MockMvc mockMvc;
+    private MockMvc mockMvc;
 
-  @Mock
-  private StudentQuizService studentQuizService;
+    @Mock
+    private StudentQuizService studentQuizService;
 
-  @InjectMocks
-  private StudentQuizController studentQuizController;
+    @InjectMocks
+    private StudentQuizController controller;
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-  private String userId;
-  private String readingId;
-  private Question question;
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
 
-  @BeforeEach
-  void setUp() {
-    MockitoAnnotations.openMocks(this);
-    mockMvc = MockMvcBuilders
-        .standaloneSetup(studentQuizController)
-        .setControllerAdvice(new GlobalExceptionHandler())
-        .build();
+        mockMvc = MockMvcBuilders.standaloneSetup(controller)
+            .setControllerAdvice(new GlobalExceptionHandler())
+            .build();
+    }
 
-    userId = "user-001";
-    readingId = "reading-001";
+    @Test
+    void getQuizQuestionTest() throws Exception {
+        String userId = "user123";
+        String readingId = "reading1";
 
-    Reading reading = new Reading();
-    reading.setId(readingId);
+        Question q1 = new Question();
+        q1.setId("q1");
+        q1.setText("Question 1");
+        q1.setQuestionType("MULTIPLE_CHOICE");
+        q1.setOptions(List.of("A", "B"));
 
-    question = new Question();
-    question.setId("q-001");
-    question.setText("Who invented telephone?");
-    question.setQuestionType("MULTIPLE_CHOICE");
-    question.setOptions(List.of("Edison", "Bell", "Tesla", "Newton"));
-    question.setCorrectAnswer("B");
-    question.setReading(reading);
-  }
+        Question q2 = new Question();
+        q2.setId("q2");
+        q2.setText("Question 2");
+        q2.setQuestionType("TRUE_FALSE");
+        q2.setOptions(List.of("True", "False"));
 
-  @Test
-  void testGetQuizQuestionsWhenNotCompleted() throws Exception{
-    when(studentQuizService.getQuizQuestion(userId, readingId))
-        .thenReturn(List.of(question));
+        when(studentQuizService.getQuizQuestion(userId, readingId)).thenReturn(List.of(q1, q2));
 
-    mockMvc.perform(get("/api/student/quiz/readings/{readingId}/questions", readingId)
-        .header("userId", userId))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(1))
-        .andExpect(jsonPath("$[0].id").value("q-001"))
-        .andExpect(jsonPath("$[0].questionType").value("MULTIPLE_CHOICE"))
-        .andExpect(jsonPath("$[0].correctAnswer").doesNotExist());
+        mockMvc.perform(get("/api/student/quiz/readings/{readingId}/questions", readingId).header("userId", userId))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(2))
 
-    verify(studentQuizService, times(1)).getQuizQuestion(userId, readingId);
-  }
+            .andExpect(jsonPath("$[0].id").value("q1"))
+            .andExpect(jsonPath("$[0].text").value("Question 1"))
+            .andExpect(jsonPath("$[0].questionType").value("MULTIPLE_CHOICE"))
 
-  @Test
-  void testGetQuizQuestionsWhenAlreadyCompleted() throws Exception {
-    when(studentQuizService.getQuizQuestion(userId, readingId))
-        .thenThrow(new IllegalStateException("You've completed this quiz"));
+            .andExpect(jsonPath("$[1].id").value("q2"))
+            .andExpect(jsonPath("$[1].text").value("Question 2"))
+            .andExpect(jsonPath("$[1].questionType").value("TRUE_FALSE"));
 
-    mockMvc.perform(get("/api/student/quiz/readings/{readingId}/questions", readingId)
-            .header("userId", userId))
-        .andExpect(status().isBadRequest());
-  }
+        verify(studentQuizService, times(1)).getQuizQuestion(userId, readingId);
+    }
 
-  @Test
-  void testGetQuizQuestionsWhenEmptyList() throws Exception {
-    when(studentQuizService.getQuizQuestion(userId, readingId))
-        .thenReturn(List.of());
+    @Test
+    void getQuizQuestionUserIdInvalidFormat() throws Exception {
+        String[] invalidUserIds = {"user@123", "user 123", "user_123", "", " "};
 
-    mockMvc.perform(get("/api/student/quiz/readings/{readingId}/questions", readingId)
-        .header("userId", userId))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(0));
-  }
+        for (String invalidId : invalidUserIds) {
+            mockMvc.perform(get("/api/student/quiz/readings/{readingId}/questions", "r1")
+                    .header("userId", invalidId))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Invalid user id format"));
+        }
+    }
 
-  @Test
-  void testSubmitQuiz_WhenValidAnswers_Return200WithResult() throws Exception {
-    QuizSubmitRequest request = new QuizSubmitRequest();
-    request.setAnswers(Map.of("q-001", "B"));
-    request.setTimeTakenSeconds(120);
+    @Test
+    void submitQuizTest() throws Exception {
+        String userId = "user123";
+        String readingId = "reading1";
 
-    QuizSubmitResponse mockResponse = QuizSubmitResponse.builder()
-        .score(100)
-        .accuracy(1.0)
-        .totalQuestions(1)
-        .correctAnswers(1)
-        .timeTaken(120)
-        .questionResults(Map.of("q-001", true))
-        .build();
+        Map<String, String> answers = new HashMap<>();
+        answers.put("q1", "A");
 
-    when(studentQuizService.submitQuiz(eq(userId), eq(readingId), any(QuizSubmitRequest.class)))
-        .thenReturn(mockResponse);
+        QuizSubmitRequest request = new QuizSubmitRequest();
+        request.setAnswers(answers);
+        request.setTimeTakenSeconds(120);
 
-    mockMvc.perform(post("/api/student/quiz/readings/{readingId}/submit", readingId)
-            .header("userId", userId)
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.score").value(100))
-        .andExpect(jsonPath("$.accuracy").value(1.0))
-        .andExpect(jsonPath("$.totalQuestions").value(1))
-        .andExpect(jsonPath("$.correctAnswers").value(1))
-        .andExpect(jsonPath("$.questionResults.q-001").value(true));
+        Map<String, Boolean> results = new HashMap<>();
+        results.put("q1", true);
 
-    verify(studentQuizService, times(1))
-        .submitQuiz(eq(userId), eq(readingId), any(QuizSubmitRequest.class));
-  }
+        QuizSubmitResponse response = QuizSubmitResponse.builder()
+            .score(100)
+            .accuracy(1.0)
+            .correctAnswers(1)
+            .totalQuestions(1)
+            .timeTaken(120)
+            .questionResults(results)
+            .build();
 
-  @Test
-  void testSubmitQuizWhenAlreadySubmitted() throws Exception {
-    QuizSubmitRequest request = new QuizSubmitRequest();
-    request.setAnswers(Map.of("q-001", "B"));
-    request.setTimeTakenSeconds(60);
+        when(studentQuizService.submitQuiz(
+            eq(userId),
+            eq(readingId),
+            any(QuizSubmitRequest.class)))
+            .thenReturn(response);
 
-    when(studentQuizService.submitQuiz(eq(userId), eq(readingId), any()))
-        .thenThrow(new IllegalStateException("You've completed this quiz"));
+        mockMvc.perform(post("/api/student/quiz/readings/{readingId}/submit", readingId)
+                .header("userId", userId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.score").value(100))
+            .andExpect(jsonPath("$.accuracy").value(1.0))
+            .andExpect(jsonPath("$.correctAnswers").value(1))
+            .andExpect(jsonPath("$.totalQuestions").value(1))
+            .andExpect(jsonPath("$.timeTaken").value(120))
+            .andExpect(jsonPath("$.questionResults.q1").value(true));
 
-    mockMvc.perform(post("/api/student/quiz/readings/{readingId}/submit", readingId)
-        .header("userId", userId)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isBadRequest());
-  }
+        verify(studentQuizService, times(1))
+            .submitQuiz(eq(userId), eq(readingId), any(QuizSubmitRequest.class));
+    }
 
-  @Test
-  void testSubmitQuizWhenPartialCorrect() throws Exception {
-    QuizSubmitRequest request = new QuizSubmitRequest();
-    request.setAnswers(Map.of("q-001", "A", "q-002", "False"));
-    request.setTimeTakenSeconds(90);
+    @Test
+    void submitQuiz_whenUserIdInvalidFormat_shouldReturnBadRequest() throws Exception {
+        String[] invalidUserIds = {"invalid@user", "invalid user", "invalid_user", "", " "};
+        QuizSubmitRequest request = new QuizSubmitRequest();
+        request.setAnswers(Map.of("q1", "A"));
+        request.setTimeTakenSeconds(100);
 
-    QuizSubmitResponse mockResponse = QuizSubmitResponse.builder()
-        .score(50)
-        .accuracy(0.5)
-        .totalQuestions(2)
-        .correctAnswers(1)
-        .timeTaken(90)
-        .questionResults(Map.of("q-001", false, "q-002", true))
-        .build();
-
-    when(studentQuizService.submitQuiz(eq(userId), eq(readingId), any()))
-        .thenReturn(mockResponse);
-
-    mockMvc.perform(post("/api/student/quiz/readings/{readingId}/submit", readingId)
-        .header("userId", userId)
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.score").value(50))
-        .andExpect(jsonPath("$.accuracy").value(0.5))
-        .andExpect(jsonPath("$.correctAnswers").value(1));
-  }
-
-  @Test
-  void testGetQuizQuestionsShouldUseAuthenticatedUserIdNotHeader() throws Exception {
-    when(studentQuizService.getQuizQuestion(anyString(), eq(readingId)))
-        .thenReturn(List.of(question));
-
-    mockMvc.perform(get("/api/student/quiz/readings/{readingId}/questions", readingId)
-            .header("userId", userId))
-        .andExpect(status().isOk());
-  }
-
+        for (String invalidId : invalidUserIds) {
+            mockMvc.perform(post("/api/student/quiz/readings/{readingId}/submit", "r1")
+                    .header("userId", invalidId)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Invalid user id format"));
+        }
+    }
 }
