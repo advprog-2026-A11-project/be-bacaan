@@ -7,69 +7,349 @@ import id.ac.ui.cs.advprog.yomu.repository.QuizRepository;
 import id.ac.ui.cs.advprog.yomu.repository.ReadingRepository;
 import id.ac.ui.cs.advprog.yomu.validator.QuizValidator;
 import id.ac.ui.cs.advprog.yomu.validator.QuizValidatorFactory;
+
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockitoAnnotations;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 class AdminQuizServiceTest {
 
-  @Mock private QuizRepository questionRepository;
-  @Mock private ReadingRepository readingRepository;
-  @Mock private QuizValidatorFactory validatorFactory;
-  @Mock private QuizValidator validator;
+  @Mock
+  private QuizRepository quizRepository;
+
+  @Mock
+  private ReadingRepository readingRepository;
+
+  @Mock
+  private QuizValidatorFactory validatorFactory;
+
+  @Mock
+  private QuizValidator validator;
 
   @InjectMocks
-  private AdminQuizService adminQuizService;
+  private AdminQuizService service;
 
-  @Test
-  void testAddQuestionShouldUseCorrectValidator() {
-    QuizQuestionRequest request = new QuizQuestionRequest();
-    request.setQuestionType("MULTIPLE_CHOICE");
-    request.setText("Test question?");
-    request.setOptions(List.of("A", "B", "C"));
-    request.setCorrectAnswer("A");
-
-    String readingId = "reading123";
-    Reading reading = new Reading();
-    reading.setId(readingId);
-
-    when(readingRepository.existsById(readingId)).thenReturn(true);
-    when(readingRepository.findById(readingId)).thenReturn(Optional.of(reading));
-    when(validatorFactory.getValidator("MULTIPLE_CHOICE")).thenReturn(validator);
-
-    Question expectedQuestion = new Question();
-    when(validator.createQuestion(eq(request), any(Reading.class))).thenReturn(expectedQuestion);
-    when(questionRepository.save(any(Question.class))).thenReturn(expectedQuestion);
-
-    Question result = adminQuizService.addQuestion(readingId, request);
-
-    // Assert
-    assertThat(result).isEqualTo(expectedQuestion);
-    verify(validator).validate(request);
-    verify(validator).createQuestion(eq(request), any(Reading.class));
+  @BeforeEach
+  void setUp() {
+    MockitoAnnotations.openMocks(this);
   }
 
   @Test
-  void testAddQuestWithInvalidQuestType() {
-    String readingId = "reading123";
+  void addQuestion_shouldSaveQuestionSuccessfully() {
+
+    String readingId = "reading-1";
+
     QuizQuestionRequest request = new QuizQuestionRequest();
-    request.setQuestionType("INVALID_TYPE");
+    request.setQuestionType("ESSAY");
+
+    Reading reading = new Reading();
+
+    Question question = new Question();
 
     when(readingRepository.existsById(readingId)).thenReturn(true);
-    when(validatorFactory.getValidator("INVALID_TYPE"))
-        .thenThrow(new IllegalArgumentException("Invalid question type"));
 
-    assertThatThrownBy(() -> adminQuizService.addQuestion(readingId, request))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("Invalid question type");
+    when(validatorFactory.getValidator("ESSAY")).thenReturn(validator);
+
+    when(readingRepository.findById(readingId)).thenReturn(Optional.of(reading));
+
+    when(validator.createQuestion(request, reading)).thenReturn(question);
+
+    when(quizRepository.save(question)).thenReturn(question);
+
+    Question result = service.addQuestion(readingId, request);
+
+    assertNotNull(result);
+    verify(validator).validate(request);
+    verify(quizRepository).save(question);
+  }
+
+  @Test
+  void addQuestion_whenReadingNotFound_shouldThrowException() {
+
+    when(readingRepository.existsById("invalid")).thenReturn(false);
+
+    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        () -> service.addQuestion("invalid", new QuizQuestionRequest()));
+
+    assertEquals("Reading not found with id: invalid", exception.getMessage());
+  }
+
+  @Test
+  void updateQuestion_shouldUpdateTextAndSave() {
+    String questionId = "q1";
+
+    Question question = new Question();
+    question.setQuestionType("ESSAY");
+    question.setText("Old Text");
+
+    QuizQuestionRequest request = new QuizQuestionRequest();
+    request.setText("Updated Question");
+    request.setQuestionType("ESSAY");
+
+    when(quizRepository.findById(questionId)).thenReturn(Optional.of(question));
+
+    when(validatorFactory.getValidator("ESSAY")).thenReturn(validator);
+
+    doNothing().when(validator).updateQuestion(any(Question.class), any(QuizQuestionRequest.class));
+
+    service.updateQuestion(questionId, request);
+
+    assertEquals("Updated Question", question.getText());
+    verify(validator).updateQuestion(question, request);
+    verify(quizRepository).save(question);
+  }
+
+  @Test
+  void updateQuestion_withNullText_shouldNotUpdateText() {
+    String questionId = "q1";
+    Question question = new Question();
+    question.setQuestionType("ESSAY");
+    question.setText("Original Text");
+
+    QuizQuestionRequest request = new QuizQuestionRequest();
+    request.setText(null);
+    request.setQuestionType("ESSAY");
+
+    when(quizRepository.findById(questionId)).thenReturn(Optional.of(question));
+    when(validatorFactory.getValidator("ESSAY")).thenReturn(validator);
+
+    service.updateQuestion(questionId, request);
+
+    assertEquals("Original Text", question.getText());
+  }
+
+  @Test
+  void updateQuestion_withEmptyQuestionType_shouldNotChangeType() {
+    String questionId = "q1";
+    Question question = new Question();
+    question.setQuestionType("ESSAY");
+
+    QuizQuestionRequest request = new QuizQuestionRequest();
+    request.setQuestionType("");
+
+    when(quizRepository.findById(questionId)).thenReturn(Optional.of(question));
+    when(validatorFactory.getValidator("ESSAY")).thenReturn(validator);
+
+    service.updateQuestion(questionId, request);
+
+    assertEquals("ESSAY", question.getQuestionType());
+  }
+
+  @Test
+  void updateQuestion_whenQuestionTypeChanges_shouldUseNewValidator() {
+    String questionId = "q1";
+
+    Question question = new Question();
+    question.setQuestionType("ESSAY");
+    question.setText("Existing Question");
+
+    QuizQuestionRequest request = new QuizQuestionRequest();
+    request.setQuestionType("TRUE_FALSE");
+
+    QuizValidator newValidator = mock(QuizValidator.class);
+
+    when(quizRepository.findById(questionId)).thenReturn(Optional.of(question));
+
+    when(validatorFactory.getValidator("TRUE_FALSE")).thenReturn(newValidator);
+
+    service.updateQuestion(questionId, request);
+
+    verify(newValidator).validate(request);
+    verify(newValidator).updateQuestion(question, request);
+    verify(quizRepository).save(question);
+    assertEquals("TRUE_FALSE", question.getQuestionType());
+  }
+
+  @Test
+  void updateQuestion_whenQuestionNotFound_shouldThrowException() {
+    when(quizRepository.findById("invalid")).thenReturn(Optional.empty());
+
+    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        () -> service.updateQuestion("invalid", new QuizQuestionRequest()));
+
+    assertEquals("Question not found with id: invalid", exception.getMessage());
+  }
+
+  @Test
+  void updateQuestion_whenQuestionTextTooShort_shouldThrowException() {
+    String questionId = "q1";
+
+    Question question = new Question();
+    question.setQuestionType("ESSAY");
+
+    QuizQuestionRequest request = new QuizQuestionRequest();
+    request.setText("abc");
+
+    when(quizRepository.findById(questionId)).thenReturn(Optional.of(question));
+
+    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        () -> service.updateQuestion(questionId, request));
+
+    assertEquals("Question text must be at least 5 characters", exception.getMessage());
+  }
+
+  @Test
+  void updateQuestion_whenQuestionTextEmpty_shouldThrowException() {
+    String questionId = "q1";
+    Question question = new Question();
+    question.setQuestionType("ESSAY");
+
+    QuizQuestionRequest request = new QuizQuestionRequest();
+    request.setText("");
+    request.setQuestionType("ESSAY");
+
+    when(quizRepository.findById(questionId)).thenReturn(Optional.of(question));
+    when(validatorFactory.getValidator("ESSAY")).thenReturn(validator);
+
+    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        () -> service.updateQuestion(questionId, request));
+
+    assertEquals("Question text cannot be empty", exception.getMessage());
+  }
+
+  @Test
+  void updateQuestion_withNullQuestionType_shouldNotChangeType() {
+    String questionId = "q1";
+    Question question = new Question();
+    question.setQuestionType("ESSAY");
+
+    QuizQuestionRequest request = new QuizQuestionRequest();
+    request.setQuestionType(null);
+
+    when(quizRepository.findById(questionId)).thenReturn(Optional.of(question));
+    when(validatorFactory.getValidator("ESSAY")).thenReturn(validator);
+
+    service.updateQuestion(questionId, request);
+
+    assertEquals("ESSAY", question.getQuestionType());
+  }
+
+  @Test
+  void updateQuestion_whenQuestionTextTooLong_shouldThrowException() {
+    String questionId = "q1";
+    Question question = new Question();
+    question.setQuestionType("ESSAY");
+
+    QuizQuestionRequest request = new QuizQuestionRequest();
+    request.setText("a".repeat(501));
+
+    when(quizRepository.findById(questionId)).thenReturn(Optional.of(question));
+
+    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        () -> service.updateQuestion(questionId, request));
+
+    assertEquals("Question text cannot exceed 500 characters", exception.getMessage());
+  }
+
+  @Test
+  void deleteQuestion_shouldDeleteSuccessfully() {
+    when(quizRepository.existsById("q1")).thenReturn(true);
+
+    service.deleteQuestion("q1");
+    verify(quizRepository).deleteById("q1");
+  }
+
+  @Test
+  void deleteQuestion_whenQuestionNotFound_shouldThrowException() {
+
+    when(quizRepository.existsById("invalid")).thenReturn(false);
+
+    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        () -> service.deleteQuestion("invalid"));
+
+    assertEquals("Question not found with id: invalid", exception.getMessage());
+  }
+
+  @Test
+  void deleteAllQuestionsForReading_shouldDeleteAllQuestions() {
+
+    String readingId = "reading-1";
+
+    List<Question> questions = List.of(new Question(), new Question());
+
+    when(readingRepository.existsById(readingId)).thenReturn(true);
+
+    when(quizRepository.findByReadingId(readingId)).thenReturn(questions);
+
+    service.deleteAllQuestionsForReading(readingId);
+    verify(quizRepository).deleteAll(questions);
+  }
+
+  @Test
+  void deleteAllQuestionsForReading_whenNoQuestions_shouldNotDelete() {
+
+    String readingId = "reading-1";
+
+    when(readingRepository.existsById(readingId))
+        .thenReturn(true);
+
+    when(quizRepository.findByReadingId(readingId))
+        .thenReturn(List.of());
+
+    service.deleteAllQuestionsForReading(readingId);
+
+    verify(quizRepository, never()).deleteAll(any());
+  }
+
+  @Test
+  void getAllQuestionsForReading_shouldReturnQuestions() {
+    String readingId = "reading-1";
+
+    List<Question> questions = List.of(new Question(), new Question());
+
+    when(readingRepository.existsById(readingId)).thenReturn(true);
+
+    when(quizRepository.findByReadingId(readingId)).thenReturn(questions);
+
+    List<Question> result = service.getAllQuestionsForReading(readingId);
+    assertEquals(2, result.size());
+  }
+
+  @Test
+  void getQuestion_shouldReturnQuestion() {
+    Question question = new Question();
+
+    when(quizRepository.findById("q1")).thenReturn(Optional.of(question));
+
+    Question result = service.getQuestion("q1");
+    assertNotNull(result);
+  }
+
+  @Test
+  void getQuestionCountForReading_shouldReturnCount() {
+    String readingId = "reading-1";
+
+    when(readingRepository.existsById(readingId)).thenReturn(true);
+
+    when(quizRepository.countByReadingId(readingId)).thenReturn(5L);
+
+    long result = service.getQuestionCountForReading(readingId);
+    assertEquals(5L, result);
+  }
+
+  @Test
+  void findReadingById_whenFoundThenDisappears_shouldThrowException() {
+    String readingId = "reading-1";
+    QuizQuestionRequest request = new QuizQuestionRequest();
+    request.setQuestionType("ESSAY");
+
+    when(readingRepository.existsById(readingId)).thenReturn(true);
+    when(validatorFactory.getValidator("ESSAY")).thenReturn(validator);
+    when(readingRepository.findById(readingId)).thenReturn(Optional.empty());
+
+    assertThrows(IllegalArgumentException.class, () -> service.addQuestion(readingId, request));
   }
 }

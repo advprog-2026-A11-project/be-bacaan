@@ -3,257 +3,268 @@ package id.ac.ui.cs.advprog.yomu.service;
 import id.ac.ui.cs.advprog.yomu.dto.QuizSubmitRequest;
 import id.ac.ui.cs.advprog.yomu.dto.QuizSubmitResponse;
 import id.ac.ui.cs.advprog.yomu.entity.Question;
-import id.ac.ui.cs.advprog.yomu.entity.Reading;
 import id.ac.ui.cs.advprog.yomu.repository.QuizRepository;
 import id.ac.ui.cs.advprog.yomu.repository.UserProgressRepository;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockitoAnnotations;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-public class StudentQuizServiceTest {
+class StudentQuizServiceTest {
 
-  @Mock
-  private QuizRepository quizRepository;
+    @Mock
+    private QuizRepository quizRepository;
 
-  @Mock
-  private UserProgressRepository userProgressRepository;
+    @Mock
+    private UserProgressRepository userProgressRepository;
 
-  @Mock
-  private QuizService quizService;
+    @Mock
+    private QuizService quizService;
 
-  @InjectMocks
-  private StudentQuizService studentQuizService;
+    @InjectMocks
+    private StudentQuizService studentQuizService;
 
-  private Reading reading;
-  private Question questionMultipleChoice;
-  private Question questionTrueFalse;
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
 
-  @BeforeEach
-  void setUp() {
-    reading = new Reading();
-    reading.setId("reading-abc");
-    reading.setTitle("Sejarah Komputer");
+    @Test
+    void getQuizQuestionTest() {
+        String userId = "user1";
+        String readingId = "reading1";
 
-    questionMultipleChoice = new Question();
-    questionMultipleChoice.setId("q-001");
-    questionMultipleChoice.setText("Apa kepanjangan dari CPU?");
-    questionMultipleChoice.setQuestionType("MULTIPLE_CHOICE");
-    questionMultipleChoice.setOptions(List.of(
-        "Central Processing Unit",
-        "Computer Power Unit",
-        "Control Processing Unit"
-    ));
-    questionMultipleChoice.setCorrectAnswer("A");
-    questionMultipleChoice.setReading(reading);
+        List<Question> questions = List.of(new Question(), new Question());
 
-    questionTrueFalse = new Question();
-    questionTrueFalse.setId("q-002");
-    questionTrueFalse.setText("Matahari terbit dari barat.");
-    questionTrueFalse.setQuestionType("TRUE_FALSE");
-    questionTrueFalse.setOptions(List.of("True", "False"));
-    questionTrueFalse.setCorrectAnswer("False");
-    questionTrueFalse.setReading(reading);
-  }
+        when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
+            .thenReturn(false);
+        when(quizRepository.findByReadingId(readingId)).thenReturn(questions);
 
-  @Test
-  void testGetQuizQuestionsWhenNotCompletedReturnListOfQuestions() {
-    String userId = "user-123";
-    String readingId = "reading-abc";
+        List<Question> result = studentQuizService.getQuizQuestion(userId, readingId);
 
-    when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
-        .thenReturn(false);  // belum pernah dikerjakan
+        assertEquals(2, result.size());
+        verify(quizRepository).findByReadingId(readingId);
+    }
 
-    when(quizRepository.findByReadingId(readingId))
-        .thenReturn(List.of(questionMultipleChoice, questionTrueFalse));
+    @Test
+    void getQuizQuestionWhenQuizAlreadyCompleted() {
+        String userId = "user1";
+        String readingId = "reading1";
 
-    // WHEN: student minta soal
-    List<Question> result = studentQuizService.getQuizQuestion(userId, readingId);
+        when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
+            .thenReturn(true);
 
-    // THEN: harus dapat 2 soal
-    assertThat(result).isNotNull();
-    assertThat(result).hasSize(2);
-    assertThat(result).containsExactlyInAnyOrder(questionMultipleChoice, questionTrueFalse);
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+            () -> studentQuizService.getQuizQuestion(userId, readingId));
 
-    verify(userProgressRepository).existsByUserIdAndReadingId(userId, readingId);
-    verify(quizRepository).findByReadingId(readingId);
-  }
+        assertEquals("You've completed this quiz", exception.getMessage());
+    }
 
-  @Test
-  void testGetQuizQuestionsWhenAlreadyCompleted() {
-    String userId = "user-123";
-    String readingId = "reading-abc";
+    @Test
+    void submitQuiz_shouldReturnCorrectResult() {
+        String userId = "user1";
+        String readingId = "reading1";
 
-    when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
-        .thenReturn(true);  // sudah pernah dikerjakan!
+        Question q1 = new Question();
+        q1.setId("q1");
+        q1.setCorrectAnswer("A");
 
-    // throw exception, jangan kasih soal lagi
-    assertThatThrownBy(() ->
-        studentQuizService.getQuizQuestion(userId, readingId))
-        .isInstanceOf(IllegalStateException.class)
-        .hasMessageContaining("You've completed this quiz");
+        Question q2 = new Question();
+        q2.setId("q2");
+        q2.setCorrectAnswer("B");
 
-    verify(quizRepository, never()).findByReadingId(anyString());
-  }
+        List<Question> questions = List.of(q1, q2);
 
-  @Test
-  void testGetQuizQuestionsWhenNoQuestionsExist() {
-    String userId = "user-123";
-    String readingId = "reading-abc";
+        Map<String, String> answers = new HashMap<>();
+        answers.put("q1", "A");
+        answers.put("q2", "B");
 
-    when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
-        .thenReturn(false);
-    when(quizRepository.findByReadingId(readingId))
-        .thenReturn(List.of());  // kosong
+        QuizSubmitRequest request = new QuizSubmitRequest();
+        request.setAnswers(answers);
+        request.setTimeTakenSeconds(120);
 
-    // WHEN
-    List<Question> result = studentQuizService.getQuizQuestion(userId, readingId);
+        when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
+            .thenReturn(false);
 
-    assertThat(result).isNotNull();
-    assertThat(result).isEmpty();
-  }
+        when(quizRepository.findByReadingId(readingId)).thenReturn(questions);
 
-  @Test
-  void testSubmitQuizWithAllCorrectAnswers() {
-    String userId = "user-123";
-    String readingId = "reading-abc";
+        QuizSubmitResponse response = studentQuizService.submitQuiz(userId, readingId, request);
 
-    QuizSubmitRequest request = new QuizSubmitRequest();
-    Map<String, String> answers = Map.of(
-        "q-001", "A",
-        "q-002", "False"
-    );
-    request.setAnswers(answers);
-    request.setTimeTakenSeconds(120);
+        assertEquals(100, response.getScore());
+        assertEquals(1.0, response.getAccuracy());
+        assertEquals(2, response.getTotalQuestions());
+        assertEquals(2, response.getCorrectAnswers());
+        assertEquals(120, response.getTimeTaken());
 
-    when(quizRepository.findByReadingId(readingId))
-        .thenReturn(List.of(questionMultipleChoice, questionTrueFalse));
+        assertTrue(response.getQuestionResults().get("q1"));
+        assertTrue(response.getQuestionResults().get("q2"));
 
-    when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
-        .thenReturn(false);
+        verify(quizService).completeQuiz(userId, readingId, 100, 1.0);
+    }
 
-    QuizSubmitResponse response = studentQuizService.submitQuiz(userId, readingId, request);
+    @Test
+    void submitQuizTest() {
 
-    assertThat(response).isNotNull();
-    assertThat(response.getTotalQuestions()).isEqualTo(2);
-    assertThat(response.getCorrectAnswers()).isEqualTo(2);
-    assertThat(response.getScore()).isEqualTo(100);
-    assertThat(response.getAccuracy()).isEqualTo(1.0);
+        String userId = "user1";
+        String readingId = "reading1";
 
-    // progress harus disimpan setelah submit
-    verify(quizService).completeQuiz(userId, readingId, 100, 1.0);
-  }
+        Question q1 = new Question();
+        q1.setId("q1");
+        q1.setCorrectAnswer("A");
 
-  @Test
-  void testSubmitQuizWithHalfCorrectAnswers() {
-    String userId = "user-456";
-    String readingId = "reading-abc";
+        Question q2 = new Question();
+        q2.setId("q2");
+        q2.setCorrectAnswer("B");
 
-    QuizSubmitRequest request = new QuizSubmitRequest();
-    Map<String, String> answers = Map.of(
-        "q-001", "A",
-        "q-002", "True"   // the correct answer is False
-    );
-    request.setAnswers(answers);
-    request.setTimeTakenSeconds(90);
+        List<Question> questions = List.of(q1, q2);
 
-    when(quizRepository.findByReadingId(readingId))
-        .thenReturn(List.of(questionMultipleChoice, questionTrueFalse));
-    when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
-        .thenReturn(false);
+        Map<String, String> answers = new HashMap<>();
+        answers.put("q1", "A");
+        answers.put("q2", "C");
 
-    QuizSubmitResponse response = studentQuizService.submitQuiz(userId, readingId, request);
+        QuizSubmitRequest request = new QuizSubmitRequest();
+        request.setAnswers(answers);
+        request.setTimeTakenSeconds(60);
 
-    assertThat(response.getTotalQuestions()).isEqualTo(2);
-    assertThat(response.getCorrectAnswers()).isEqualTo(1);
-    assertThat(response.getScore()).isEqualTo(50);
-    assertThat(response.getAccuracy()).isEqualTo(0.5);
+        when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
+            .thenReturn(false);
 
-    verify(quizService).completeQuiz(userId, readingId, 50, 0.5);
-  }
+        when(quizRepository.findByReadingId(readingId)).thenReturn(questions);
 
-  @Test
-  void testSubmitQuiz_WithAllWrongAnswers() {
-    String userId = "user-789";
-    String readingId = "reading-abc";
+        QuizSubmitResponse response = studentQuizService.submitQuiz(userId, readingId, request);
 
-    QuizSubmitRequest request = new QuizSubmitRequest();
-    Map<String, String> answers = Map.of(
-        "q-001", "B",
-        "q-002", "True"
-    );
+        assertEquals(50, response.getScore());
+        assertEquals(0.5, response.getAccuracy());
+        assertEquals(1, response.getCorrectAnswers());
 
-    request.setAnswers(answers);
-    request.setTimeTakenSeconds(60);
+        assertTrue(response.getQuestionResults().get("q1"));
+        assertFalse(response.getQuestionResults().get("q2"));
 
-    when(quizRepository.findByReadingId(readingId))
-        .thenReturn(List.of(questionMultipleChoice, questionTrueFalse));
-    when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
-        .thenReturn(false);
+        verify(quizService).completeQuiz(userId, readingId, 50, 0.5);
+    }
 
-    QuizSubmitResponse response = studentQuizService.submitQuiz(userId, readingId, request);
+    @Test
+    void submitQuizWhenQuizAlreadyCompleted() {
+        String userId = "user1";
+        String readingId = "reading1";
 
-    assertThat(response.getCorrectAnswers()).isEqualTo(0);
-    assertThat(response.getScore()).isEqualTo(0);
-    assertThat(response.getAccuracy()).isEqualTo(0);
+        when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
+            .thenReturn(true);
 
-    verify(quizService).completeQuiz(userId, readingId, 0, 0.0);
-  }
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+            () -> studentQuizService.submitQuiz(userId, readingId,new QuizSubmitRequest()));
 
-  @Test
-  void testSubmitQuizSaveProgress() {
-    String userId = "user-111";
-    String readingId = "reading-abc";
+        assertEquals("You've completed this quiz", exception.getMessage());
+    }
 
-    QuizSubmitRequest request = new QuizSubmitRequest();
-    request.setAnswers(Map.of("q-001", "A"));
-    request.setTimeTakenSeconds(30);
+    @Test
+    void submitQuizWhenRequestIsNull() {
+        String userId = "user1";
+        String readingId = "reading1";
 
-    when(quizRepository.findByReadingId(readingId))
-        .thenReturn(List.of(questionMultipleChoice));
-    when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
-        .thenReturn(false);
+        when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
+            .thenReturn(false);
 
-    studentQuizService.submitQuiz(userId, readingId, request);
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+            () -> studentQuizService.submitQuiz(userId, readingId, null));
 
-    verify(quizService, times(1)).completeQuiz(
-        eq(userId),
-        eq(readingId),
-        anyInt(),
-        anyDouble()
-    );
-  }
+        assertEquals("Please choose the answers before submit the quiz", exception.getMessage());
+    }
 
-  @Test
-  void testSubmitQuizResponseShouldContainResults() {
-    String userId = "user-222";
-    String readingId = "reading-abc";
+    @Test
+    void submitQuizWhenAnswersAreNull() {
+        String userId = "user1";
+        String readingId = "reading1";
 
-    QuizSubmitRequest request = new QuizSubmitRequest();
-    request.setAnswers(Map.of(
-        "q-001", "A",
-        "q-002", "True"
-    ));
-    request.setTimeTakenSeconds(45);
+        QuizSubmitRequest request = new QuizSubmitRequest();
+        request.setAnswers(null);
 
-    when(quizRepository.findByReadingId(readingId))
-        .thenReturn(List.of(questionMultipleChoice, questionTrueFalse));
-    when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
-        .thenReturn(false);
+        when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
+            .thenReturn(false);
 
-    QuizSubmitResponse response = studentQuizService.submitQuiz(userId, readingId, request);
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+            () -> studentQuizService.submitQuiz(userId, readingId, request));
 
-    assertThat(response.getCorrectAnswers()).isNotNull();
-    assertThat(response.getQuestionResults()).containsEntry("q-001", true);
-    assertThat(response.getQuestionResults()).containsEntry("q-002", false);
-  }
+        assertEquals("Please choose the answers before submit the quiz", exception.getMessage());
+    }
+
+    @Test
+    void submitQuizWhenNoQuestionsAvailable() {
+        String userId = "user1";
+        String readingId = "reading1";
+
+        QuizSubmitRequest request = new QuizSubmitRequest();
+        request.setAnswers(new HashMap<>());
+
+        when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
+            .thenReturn(false);
+
+        when(quizRepository.findByReadingId(readingId))
+            .thenReturn(List.of());
+
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
+            () -> studentQuizService.submitQuiz(userId, readingId, request));
+
+        assertEquals("No quiz available for this reading", exception.getMessage());
+    }
+
+    @Test
+    void submitQuizIgnoreCaseAndWhitespace() {
+        String userId = "user1";
+        String readingId = "reading1";
+
+        Question question = new Question();
+        question.setId("q1");
+        question.setCorrectAnswer("A");
+
+        QuizSubmitRequest request = new QuizSubmitRequest();
+
+        Map<String, String> answers = new HashMap<>();
+        answers.put("q1", "  a  ");
+
+        request.setAnswers(answers);
+
+        when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
+            .thenReturn(false);
+
+        when(quizRepository.findByReadingId(readingId)).thenReturn(List.of(question));
+
+        QuizSubmitResponse response = studentQuizService.submitQuiz(userId, readingId, request);
+
+        assertEquals(100, response.getScore());
+        assertTrue(response.getQuestionResults().get("q1"));
+    }
+
+    @Test
+    void submitQuizTreatNullStudentAnswerAsIncorrect() {
+        String userId = "user1";
+        String readingId = "reading1";
+
+        Question question = new Question();
+        question.setId("q1");
+        question.setCorrectAnswer("A");
+
+        QuizSubmitRequest request = new QuizSubmitRequest();
+        request.setAnswers(new HashMap<>());
+
+        when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
+            .thenReturn(false);
+
+        when(quizRepository.findByReadingId(readingId)).thenReturn(List.of(question));
+
+        QuizSubmitResponse response = studentQuizService.submitQuiz(userId, readingId, request);
+
+        assertEquals(0, response.getScore());
+        assertFalse(response.getQuestionResults().get("q1"));
+    }
 }
