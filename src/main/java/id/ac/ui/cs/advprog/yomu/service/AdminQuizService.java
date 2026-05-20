@@ -1,5 +1,10 @@
 package id.ac.ui.cs.advprog.yomu.service;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import id.ac.ui.cs.advprog.yomu.dto.QuizQuestionRequest;
 import id.ac.ui.cs.advprog.yomu.entity.Question;
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
@@ -8,10 +13,6 @@ import id.ac.ui.cs.advprog.yomu.repository.ReadingRepository;
 import id.ac.ui.cs.advprog.yomu.validator.QuizValidator;
 import id.ac.ui.cs.advprog.yomu.validator.QuizValidatorFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -45,10 +46,10 @@ public class AdminQuizService {
 
     // Handle question type change
     if (request.getQuestionType() != null && !request.getQuestionType().isEmpty()
-      && !request.getQuestionType().equals(question.getQuestionType())) {
+        && !request.getQuestionType().equals(question.getQuestionType())) {
 
       QuizValidator newValidator = validatorFactory
-        .getValidator(request.getQuestionType());
+          .getValidator(request.getQuestionType());
       request.setText(question.getText()); 
       newValidator.validate(request);
 

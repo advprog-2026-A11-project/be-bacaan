@@ -1,16 +1,17 @@
 package id.ac.ui.cs.advprog.yomu.service;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Service;
+
 import id.ac.ui.cs.advprog.yomu.dto.QuizSubmitRequest;
 import id.ac.ui.cs.advprog.yomu.dto.QuizSubmitResponse;
 import id.ac.ui.cs.advprog.yomu.entity.Question;
 import id.ac.ui.cs.advprog.yomu.repository.QuizRepository;
 import id.ac.ui.cs.advprog.yomu.repository.UserProgressRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +26,7 @@ public class StudentQuizService {
   }
 
   public QuizSubmitResponse submitQuiz(String userId, String readingId,
-                                       QuizSubmitRequest request) {
+      QuizSubmitRequest request) {
 
     validateNotCompleted(userId, readingId);
     validateRequest(request);
@@ -49,7 +50,7 @@ public class StudentQuizService {
 
       questionResults.put(questId, isCorrect);
 
-      if(isCorrect) {
+      if (isCorrect) {
         correctCount++;
       }
     }
@@ -84,7 +85,7 @@ public class StudentQuizService {
   }
 
   private boolean isAnswerCorrect(String studentAnswer, String correctAnswer) {
-    if(studentAnswer == null || correctAnswer == null) {
+    if (studentAnswer == null || correctAnswer == null) {
       return false;
     }
 

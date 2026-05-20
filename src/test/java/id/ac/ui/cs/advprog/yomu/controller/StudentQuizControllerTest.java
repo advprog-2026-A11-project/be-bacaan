@@ -40,8 +40,8 @@ class StudentQuizControllerTest {
         MockitoAnnotations.openMocks(this);
 
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
-            .setControllerAdvice(new GlobalExceptionHandler())
-            .build();
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
     }
 
     @Test
@@ -64,29 +64,29 @@ class StudentQuizControllerTest {
         when(studentQuizService.getQuizQuestion(userId, readingId)).thenReturn(List.of(q1, q2));
 
         mockMvc.perform(get("/api/student/quiz/readings/{readingId}/questions", readingId).header("userId", userId))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
 
-            .andExpect(jsonPath("$[0].id").value("q1"))
-            .andExpect(jsonPath("$[0].text").value("Question 1"))
-            .andExpect(jsonPath("$[0].questionType").value("MULTIPLE_CHOICE"))
+                .andExpect(jsonPath("$[0].id").value("q1"))
+                .andExpect(jsonPath("$[0].text").value("Question 1"))
+                .andExpect(jsonPath("$[0].questionType").value("MULTIPLE_CHOICE"))
 
-            .andExpect(jsonPath("$[1].id").value("q2"))
-            .andExpect(jsonPath("$[1].text").value("Question 2"))
-            .andExpect(jsonPath("$[1].questionType").value("TRUE_FALSE"));
+                .andExpect(jsonPath("$[1].id").value("q2"))
+                .andExpect(jsonPath("$[1].text").value("Question 2"))
+                .andExpect(jsonPath("$[1].questionType").value("TRUE_FALSE"));
 
         verify(studentQuizService, times(1)).getQuizQuestion(userId, readingId);
     }
 
     @Test
     void getQuizQuestionUserIdInvalidFormat() throws Exception {
-        String[] invalidUserIds = {"user@123", "user 123", "user_123", "", " "};
+        String[] invalidUserIds = { "user@123", "user 123", "user_123", "", " " };
 
         for (String invalidId : invalidUserIds) {
             mockMvc.perform(get("/api/student/quiz/readings/{readingId}/questions", "r1")
                     .header("userId", invalidId))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().string("Invalid user id format"));
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().string("Invalid user id format"));
         }
     }
 
@@ -106,39 +106,39 @@ class StudentQuizControllerTest {
         results.put("q1", true);
 
         QuizSubmitResponse response = QuizSubmitResponse.builder()
-            .score(100)
-            .accuracy(1.0)
-            .correctAnswers(1)
-            .totalQuestions(1)
-            .timeTaken(120)
-            .questionResults(results)
-            .build();
+                .score(100)
+                .accuracy(1.0)
+                .correctAnswers(1)
+                .totalQuestions(1)
+                .timeTaken(120)
+                .questionResults(results)
+                .build();
 
         when(studentQuizService.submitQuiz(
-            eq(userId),
-            eq(readingId),
-            any(QuizSubmitRequest.class)))
-            .thenReturn(response);
+                eq(userId),
+                eq(readingId),
+                any(QuizSubmitRequest.class)))
+                .thenReturn(response);
 
         mockMvc.perform(post("/api/student/quiz/readings/{readingId}/submit", readingId)
                 .header("userId", userId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.score").value(100))
-            .andExpect(jsonPath("$.accuracy").value(1.0))
-            .andExpect(jsonPath("$.correctAnswers").value(1))
-            .andExpect(jsonPath("$.totalQuestions").value(1))
-            .andExpect(jsonPath("$.timeTaken").value(120))
-            .andExpect(jsonPath("$.questionResults.q1").value(true));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.score").value(100))
+                .andExpect(jsonPath("$.accuracy").value(1.0))
+                .andExpect(jsonPath("$.correctAnswers").value(1))
+                .andExpect(jsonPath("$.totalQuestions").value(1))
+                .andExpect(jsonPath("$.timeTaken").value(120))
+                .andExpect(jsonPath("$.questionResults.q1").value(true));
 
         verify(studentQuizService, times(1))
-            .submitQuiz(eq(userId), eq(readingId), any(QuizSubmitRequest.class));
+                .submitQuiz(eq(userId), eq(readingId), any(QuizSubmitRequest.class));
     }
 
     @Test
     void submitQuiz_whenUserIdInvalidFormat_shouldReturnBadRequest() throws Exception {
-        String[] invalidUserIds = {"invalid@user", "invalid user", "invalid_user", "", " "};
+        String[] invalidUserIds = { "invalid@user", "invalid user", "invalid_user", "", " " };
         QuizSubmitRequest request = new QuizSubmitRequest();
         request.setAnswers(Map.of("q1", "A"));
         request.setTimeTakenSeconds(100);
@@ -148,8 +148,8 @@ class StudentQuizControllerTest {
                     .header("userId", invalidId)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().string("Invalid user id format"));
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().string("Invalid user id format"));
         }
     }
 }
