@@ -89,8 +89,6 @@ class AdminQuizServiceTest {
 
   @Test
   void updateQuestion_shouldUpdateTextAndSave() {
-    String questionId = "q1";
-
     Question question = new Question();
     question.setQuestionType("ESSAY");
     question.setText("Old Text");
@@ -98,6 +96,7 @@ class AdminQuizServiceTest {
     QuizQuestionRequest request = new QuizQuestionRequest();
     request.setText("Updated Question");
     request.setQuestionType("ESSAY");
+    String questionId = "q1";
 
     when(quizRepository.findById(questionId)).thenReturn(Optional.of(question));
 
@@ -114,7 +113,6 @@ class AdminQuizServiceTest {
 
   @Test
   void updateQuestion_withNullText_shouldNotUpdateText() {
-    String questionId = "q1";
     Question question = new Question();
     question.setQuestionType("ESSAY");
     question.setText("Original Text");
@@ -122,6 +120,7 @@ class AdminQuizServiceTest {
     QuizQuestionRequest request = new QuizQuestionRequest();
     request.setText(null);
     request.setQuestionType("ESSAY");
+    String questionId = "q1";
 
     when(quizRepository.findById(questionId)).thenReturn(Optional.of(question));
     when(validatorFactory.getValidator("ESSAY")).thenReturn(validator);
@@ -133,12 +132,12 @@ class AdminQuizServiceTest {
 
   @Test
   void updateQuestion_withEmptyQuestionType_shouldNotChangeType() {
-    String questionId = "q1";
     Question question = new Question();
     question.setQuestionType("ESSAY");
 
     QuizQuestionRequest request = new QuizQuestionRequest();
     request.setQuestionType("");
+    String questionId = "q1";
 
     when(quizRepository.findById(questionId)).thenReturn(Optional.of(question));
     when(validatorFactory.getValidator("ESSAY")).thenReturn(validator);
@@ -150,8 +149,6 @@ class AdminQuizServiceTest {
 
   @Test
   void updateQuestion_whenQuestionTypeChanges_shouldUseNewValidator() {
-    String questionId = "q1";
-
     Question question = new Question();
     question.setQuestionType("ESSAY");
     question.setText("Existing Question");
@@ -160,6 +157,7 @@ class AdminQuizServiceTest {
     request.setQuestionType("TRUE_FALSE");
 
     QuizValidator newValidator = mock(QuizValidator.class);
+    String questionId = "q1";
 
     when(quizRepository.findById(questionId)).thenReturn(Optional.of(question));
 
@@ -203,13 +201,13 @@ class AdminQuizServiceTest {
 
   @Test
   void updateQuestion_whenQuestionTextEmpty_shouldThrowException() {
-    String questionId = "q1";
     Question question = new Question();
     question.setQuestionType("ESSAY");
 
     QuizQuestionRequest request = new QuizQuestionRequest();
     request.setText("");
     request.setQuestionType("ESSAY");
+    String questionId = "q1";
 
     when(quizRepository.findById(questionId)).thenReturn(Optional.of(question));
     when(validatorFactory.getValidator("ESSAY")).thenReturn(validator);
@@ -222,12 +220,12 @@ class AdminQuizServiceTest {
 
   @Test
   void updateQuestion_withNullQuestionType_shouldNotChangeType() {
-    String questionId = "q1";
     Question question = new Question();
     question.setQuestionType("ESSAY");
 
     QuizQuestionRequest request = new QuizQuestionRequest();
     request.setQuestionType(null);
+    String questionId = "q1";
 
     when(quizRepository.findById(questionId)).thenReturn(Optional.of(question));
     when(validatorFactory.getValidator("ESSAY")).thenReturn(validator);
@@ -239,12 +237,12 @@ class AdminQuizServiceTest {
 
   @Test
   void updateQuestion_whenQuestionTextTooLong_shouldThrowException() {
-    String questionId = "q1";
     Question question = new Question();
     question.setQuestionType("ESSAY");
 
     QuizQuestionRequest request = new QuizQuestionRequest();
     request.setText("a".repeat(501));
+    String questionId = "q1";
 
     when(quizRepository.findById(questionId)).thenReturn(Optional.of(question));
 

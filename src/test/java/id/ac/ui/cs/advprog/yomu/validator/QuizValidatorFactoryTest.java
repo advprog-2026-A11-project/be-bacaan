@@ -11,72 +11,72 @@ import static org.mockito.Mockito.when;
 
 class QuizValidatorFactoryTest {
 
-    private QuizValidator multipleChoiceValidator;
-    private QuizValidator essayValidator;
-    private QuizValidatorFactory factory;
+  private QuizValidator multipleChoiceValidator;
+  private QuizValidator essayValidator;
+  private QuizValidatorFactory factory;
 
-    @BeforeEach
-    void setUp() {
+  @BeforeEach
+  void setUp() {
 
-        multipleChoiceValidator = mock(QuizValidator.class);
-        essayValidator = mock(QuizValidator.class);
+    multipleChoiceValidator = mock(QuizValidator.class);
+    essayValidator = mock(QuizValidator.class);
 
-        when(multipleChoiceValidator.getQuestionType())
-                .thenReturn("MULTIPLE_CHOICE");
+    when(multipleChoiceValidator.getQuestionType())
+        .thenReturn("MULTIPLE_CHOICE");
 
-        when(essayValidator.getQuestionType())
-                .thenReturn("ESSAY");
+    when(essayValidator.getQuestionType())
+        .thenReturn("ESSAY");
 
-        factory = new QuizValidatorFactory(
-                List.of(multipleChoiceValidator, essayValidator)
-        );
-    }
+    factory = new QuizValidatorFactory(
+        List.of(multipleChoiceValidator, essayValidator)
+    );
+  }
 
-    @Test
-    void getValidator_shouldReturnMultipleChoiceValidator() {
+  @Test
+  void getValidator_shouldReturnMultipleChoiceValidator() {
 
-        QuizValidator result =
-                factory.getValidator("MULTIPLE_CHOICE");
+    QuizValidator result =
+        factory.getValidator("MULTIPLE_CHOICE");
 
-        assertNotNull(result);
-        assertSame(multipleChoiceValidator, result);
-    }
+    assertNotNull(result);
+    assertSame(multipleChoiceValidator, result);
+  }
 
-    @Test
-    void getValidator_shouldReturnEssayValidator() {
+  @Test
+  void getValidator_shouldReturnEssayValidator() {
 
-        QuizValidator result =
-                factory.getValidator("ESSAY");
+    QuizValidator result =
+        factory.getValidator("ESSAY");
 
-        assertNotNull(result);
-        assertSame(essayValidator, result);
-    }
+    assertNotNull(result);
+    assertSame(essayValidator, result);
+  }
 
-    @Test
-    void getValidator_shouldThrowExceptionWhenInvalidQuizType() {
+  @Test
+  void getValidator_shouldThrowExceptionWhenInvalidQuizType() {
 
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
-                () -> factory.getValidator("INVALID")
-        );
+    IllegalArgumentException exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> factory.getValidator("INVALID")
+    );
 
-        assertEquals(
-                "Invalid quiz typeINVALID. Must be MULTIPLE_CHOICE, TRUE_FALSE, ESSAY",
-                exception.getMessage()
-        );
-    }
+    assertEquals(
+        "Invalid quiz typeINVALID. Must be MULTIPLE_CHOICE, TRUE_FALSE, ESSAY",
+        exception.getMessage()
+    );
+  }
 
-    @Test
-    void constructor_shouldStoreAllValidatorsCorrectly() {
+  @Test
+  void constructor_shouldStoreAllValidatorsCorrectly() {
 
-        assertSame(
-                multipleChoiceValidator,
-                factory.getValidator("MULTIPLE_CHOICE")
-        );
+    assertSame(
+        multipleChoiceValidator,
+        factory.getValidator("MULTIPLE_CHOICE")
+    );
 
-        assertSame(
-                essayValidator,
-                factory.getValidator("ESSAY")
-        );
-    }
+    assertSame(
+        essayValidator,
+        factory.getValidator("ESSAY")
+    );
+  }
 }

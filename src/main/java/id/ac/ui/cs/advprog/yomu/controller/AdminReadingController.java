@@ -53,7 +53,7 @@ public class AdminReadingController {
   @PutMapping("/{id}")
   // @PreAuthorize("hasRole('ADMIN')")
   public ResponseEntity<Void> update(@PathVariable String id,
-      @RequestBody ReadingRequest requestDto) {
+                                     @RequestBody ReadingRequest requestDto) {
     adminService.updateReading(id, requestDto);
     return ResponseEntity.ok().build();
   }
