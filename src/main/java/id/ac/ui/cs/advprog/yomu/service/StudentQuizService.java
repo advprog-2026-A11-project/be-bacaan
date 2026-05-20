@@ -46,7 +46,8 @@ public class StudentQuizService {
       String questId = question.getId();
       String studentAnswer = studentAnswers.get(questId);
       String correctAnswer = question.getCorrectAnswer();
-      boolean isCorrect = isAnswerCorrect(studentAnswer, correctAnswer);
+
+      boolean isCorrect = quizService.isAnswerCorrect(studentAnswer, correctAnswer, question);
 
       questionResults.put(questId, isCorrect);
 
@@ -59,7 +60,6 @@ public class StudentQuizService {
     int score = (int) Math.round((double) correctCount / totalQuestions * 100);
     double accuracy = (double) correctCount / totalQuestions;
 
-    // Simpan jawaban user agar bisa dilihat kembali lewat endpoint hasil quiz
     quizService.completeQuiz(userId, readingId, score, accuracy, studentAnswers);
 
     return QuizSubmitResponse.builder()

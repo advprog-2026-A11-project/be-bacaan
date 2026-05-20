@@ -105,8 +105,11 @@ public class QuizService {
     List<QuizResultResponse.QuestionResultDetail> details = questions.stream()
         .map(question -> {
           String userAnswer = userAnswers.getOrDefault(question.getId(), null);
-          String correctAnswer = question.getCorrectAnswer();
-          boolean isCorrect = isAnswerCorrect(userAnswer, correctAnswer);
+
+          String rawCorrectAnswer = question.getCorrectAnswer();
+          String resolvedCorrectAnswer = resolveCorrectAnswerText(question, rawCorrectAnswer);
+
+          boolean isCorrect = isAnswerCorrect(userAnswer, resolvedCorrectAnswer, question);
 
           return QuizResultResponse.QuestionResultDetail.builder()
               .questionId(question.getId())
@@ -114,7 +117,7 @@ public class QuizService {
               .questionType(question.getQuestionType())
               .options(question.getOptions())
               .userAnswer(userAnswer)
-              .correctAnswer(correctAnswer)
+              .correctAnswer(resolvedCorrectAnswer) // Frontend akan menerima teks opsi utuh
               .isCorrect(isCorrect)
               .build();
         })
@@ -138,6 +141,19 @@ public class QuizService {
     return userAnswer.trim().toUpperCase().equals(correctAnswer.trim().toUpperCase());
   }
 
+  public boolean isAnswerCorrect(String userAnswer, String correctAnswer, Question question) {
+    if (userAnswer == null || correctAnswer == null) {
+      return false;
+    }
+
+    if ("MULTIPLE_CHOICE".equalsIgnoreCase(question.getQuestionType()) && correctAnswer.trim().length() == 1) {
+      String resolvedCorrect = resolveCorrectAnswerText(question, correctAnswer);
+      return userAnswer.trim().equalsIgnoreCase(resolvedCorrect.trim());
+    }
+
+    return userAnswer.trim().equalsIgnoreCase(correctAnswer.trim());
+  }
+
   private void notifyAchievementService(String userId, int score, double accuracy) {
     try {
       String url = achievementServiceUrl + "/api/events/quiz-completed";
@@ -147,5 +163,21 @@ public class QuizService {
     } catch (Exception e) {
       log.error("Failed to notify be-achievement service for user {}: {}", userId, e.getMessage());
     }
+  }
+
+  private String resolveCorrectAnswerText(Question question, String correctAnswer) {
+    if (question.getOptions() == null || question.getOptions().isEmpty()) {
+      return correctAnswer;
+    }
+
+    String cleanAnswer = correctAnswer.trim().toUpperCase();
+    if (cleanAnswer.matches("[A-Z]")) {
+      int index = cleanAnswer.charAt(0) - 'A';
+      if (index >= 0 && index < question.getOptions().size()) {
+        return question.getOptions().get(index);
+      }
+    }
+
+    return correctAnswer;
   }
 }
