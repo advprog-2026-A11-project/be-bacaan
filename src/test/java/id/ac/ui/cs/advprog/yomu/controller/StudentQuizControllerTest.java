@@ -43,9 +43,6 @@ class StudentQuizControllerTest {
 
   @Test
   void getQuizQuestionTest() throws Exception {
-    String userId = "user123";
-    String readingId = "reading1";
-
     Question q1 = new Question();
     q1.setId("q1");
     q1.setText("Question 1");
@@ -57,10 +54,13 @@ class StudentQuizControllerTest {
     q2.setText("Question 2");
     q2.setQuestionType("TRUE_FALSE");
     q2.setOptions(List.of("True", "False"));
+    String userId = "user123";
+    String readingId = "reading1";
 
     when(studentQuizService.getQuizQuestion(userId, readingId)).thenReturn(List.of(q1, q2));
 
-    mockMvc.perform(get("/api/student/quiz/readings/{readingId}/questions", readingId).header("userId", userId))
+    mockMvc.perform(get("/api/student/quiz/readings/{readingId}/questions",
+            readingId).header("userId", userId))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(2))
 
@@ -89,9 +89,6 @@ class StudentQuizControllerTest {
 
   @Test
   void submitQuizTest() throws Exception {
-    String userId = "user123";
-    String readingId = "reading1";
-
     Map<String, String> answers = new HashMap<>();
     answers.put("q1", "A");
 
@@ -110,6 +107,9 @@ class StudentQuizControllerTest {
         .timeTaken(120)
         .questionResults(results)
         .build();
+
+    String userId = "user123";
+    String readingId = "reading1";
 
     when(studentQuizService.submitQuiz(
         eq(userId),

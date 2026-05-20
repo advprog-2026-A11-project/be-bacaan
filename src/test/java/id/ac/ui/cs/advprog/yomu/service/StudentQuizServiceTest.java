@@ -70,11 +70,9 @@ class StudentQuizServiceTest {
     assertEquals("You've completed this quiz", exception.getMessage());
   }
 
+  @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
   @Test
   void submitQuiz_shouldReturnCorrectResult() {
-    String userId = "user1";
-    String readingId = "reading1";
-
     Question q1 = new Question();
     q1.setId("q1");
     q1.setCorrectAnswer("A");
@@ -92,6 +90,9 @@ class StudentQuizServiceTest {
     QuizSubmitRequest request = new QuizSubmitRequest();
     request.setAnswers(answers);
     request.setTimeTakenSeconds(120);
+
+    String userId = "user1";
+    String readingId = "reading1";
 
     when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
         .thenReturn(false);
@@ -112,12 +113,9 @@ class StudentQuizServiceTest {
     verify(quizService).completeQuiz(userId, readingId, 100, 1.0);
   }
 
+  @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
   @Test
   void submitQuizTest() {
-
-    String userId = "user1";
-    String readingId = "reading1";
-
     Question q1 = new Question();
     q1.setId("q1");
     q1.setCorrectAnswer("A");
@@ -135,6 +133,9 @@ class StudentQuizServiceTest {
     QuizSubmitRequest request = new QuizSubmitRequest();
     request.setAnswers(answers);
     request.setTimeTakenSeconds(60);
+
+    String userId = "user1";
+    String readingId = "reading1";
 
     when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
         .thenReturn(false);
@@ -220,9 +221,6 @@ class StudentQuizServiceTest {
 
   @Test
   void submitQuizIgnoreCaseAndWhitespace() {
-    String userId = "user1";
-    String readingId = "reading1";
-
     Question question = new Question();
     question.setId("q1");
     question.setCorrectAnswer("A");
@@ -233,6 +231,9 @@ class StudentQuizServiceTest {
     answers.put("q1", "  a  ");
 
     request.setAnswers(answers);
+
+    String userId = "user1";
+    String readingId = "reading1";
 
     when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
         .thenReturn(false);

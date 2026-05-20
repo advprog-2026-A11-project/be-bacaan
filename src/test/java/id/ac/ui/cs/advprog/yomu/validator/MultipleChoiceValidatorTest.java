@@ -285,7 +285,6 @@ class MultipleChoiceValidatorTest {
     assertNull(question.getCorrectAnswer());
   }
 
-
   @Test
   void updateQuestionValidOptions() {
     Question question = new Question();
@@ -386,6 +385,7 @@ class MultipleChoiceValidatorTest {
       }
     };
 
-    assertThrows(IllegalArgumentException.class, () -> validator.updateQuestion(question, hackRequest));
+    assertThrows(IllegalArgumentException.class, () -> validator
+        .updateQuestion(question, hackRequest));
   }
 }
