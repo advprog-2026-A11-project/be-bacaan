@@ -26,7 +26,7 @@ public class StudentQuizService {
   }
 
   public QuizSubmitResponse submitQuiz(String userId, String readingId,
-      QuizSubmitRequest request) {
+                                       QuizSubmitRequest request) {
 
     validateNotCompleted(userId, readingId);
     validateRequest(request);
@@ -59,7 +59,8 @@ public class StudentQuizService {
     int score = (int) Math.round((double) correctCount / totalQuestions * 100);
     double accuracy = (double) correctCount / totalQuestions;
 
-    quizService.completeQuiz(userId, readingId, score, accuracy);
+    // Simpan jawaban user agar bisa dilihat kembali lewat endpoint hasil quiz
+    quizService.completeQuiz(userId, readingId, score, accuracy, studentAnswers);
 
     return QuizSubmitResponse.builder()
         .score(score)

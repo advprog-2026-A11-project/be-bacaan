@@ -1,9 +1,11 @@
 package id.ac.ui.cs.advprog.yomu.controller;
 
 import id.ac.ui.cs.advprog.yomu.dto.QuizQuestionResponse;
+import id.ac.ui.cs.advprog.yomu.dto.QuizResultResponse;
 import id.ac.ui.cs.advprog.yomu.dto.QuizSubmitRequest;
 import id.ac.ui.cs.advprog.yomu.dto.QuizSubmitResponse;
 import id.ac.ui.cs.advprog.yomu.entity.Question;
+import id.ac.ui.cs.advprog.yomu.service.QuizService;
 import id.ac.ui.cs.advprog.yomu.service.StudentQuizService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,13 +21,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class StudentQuizController {
   private final StudentQuizService studentQuizService;
+  private final QuizService quizService;
 
   @GetMapping("/readings/{readingId}/questions")
   public ResponseEntity<List<QuizQuestionResponse>> getQuizQuestion(
       @RequestHeader("userId") String userId,
       @PathVariable String readingId) {
 
-    // userId validation
     if (userId == null || !userId.matches("^[a-zA-Z0-9-]+$")) {
       throw new IllegalArgumentException("Invalid user id format");
     }
@@ -44,13 +46,29 @@ public class StudentQuizController {
       @PathVariable String readingId,
       @Valid @RequestBody QuizSubmitRequest request) {
 
-    // userId validation
     if (userId == null || !userId.matches("^[a-zA-Z0-9-]+$")) {
       throw new IllegalArgumentException("Invalid user id format");
     }
 
     QuizSubmitResponse response = studentQuizService.submitQuiz(userId, readingId, request);
     return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Mendapatkan hasil quiz yang sudah dikerjakan user, lengkap dengan jawaban
+   * benar per soal.
+   */
+  @GetMapping("/readings/{readingId}/result")
+  public ResponseEntity<QuizResultResponse> getQuizResult(
+      @RequestHeader("userId") String userId,
+      @PathVariable String readingId) {
+
+    if (userId == null || !userId.matches("^[a-zA-Z0-9-]+$")) {
+      throw new IllegalArgumentException("Invalid user id format");
+    }
+
+    QuizResultResponse result = quizService.getQuizResult(userId, readingId);
+    return ResponseEntity.ok(result);
   }
 
   // PRIVATE HELPER METHOD

@@ -1,9 +1,12 @@
 package id.ac.ui.cs.advprog.yomu.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import id.ac.ui.cs.advprog.yomu.dto.QuizResultResponse;
 import id.ac.ui.cs.advprog.yomu.dto.QuizSubmitRequest;
 import id.ac.ui.cs.advprog.yomu.dto.QuizSubmitResponse;
 import id.ac.ui.cs.advprog.yomu.entity.Question;
+import id.ac.ui.cs.advprog.yomu.service.QuizService;
 import id.ac.ui.cs.advprog.yomu.service.StudentQuizService;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.*;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -25,10 +29,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class StudentQuizControllerTest {
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper()
+      .registerModule(new JavaTimeModule());
   private MockMvc mockMvc;
+
   @Mock
   private StudentQuizService studentQuizService;
+
+  @Mock
+  private QuizService quizService;
+
   @InjectMocks
   private StudentQuizController controller;
 
@@ -148,5 +158,98 @@ class StudentQuizControllerTest {
           .andExpect(status().isBadRequest())
           .andExpect(content().string("Invalid user id format"));
     }
+  }
+
+  // =============================
+  // GET /readings/{readingId}/result tests
+  // =============================
+
+  @Test
+  void getQuizResult_shouldReturnResultWithCorrectAnswers() throws Exception {
+    String userId = "user123";
+    String readingId = "reading1";
+
+    QuizResultResponse.QuestionResultDetail detail1 = QuizResultResponse.QuestionResultDetail
+        .builder()
+        .questionId("q1")
+        .questionText("Apa ibu kota Indonesia?")
+        .questionType("MULTIPLE_CHOICE")
+        .options(List.of("Jakarta", "Bandung", "Surabaya"))
+        .userAnswer("Jakarta")
+        .correctAnswer("Jakarta")
+        .isCorrect(true)
+        .build();
+
+    QuizResultResponse.QuestionResultDetail detail2 = QuizResultResponse.QuestionResultDetail
+        .builder()
+        .questionId("q2")
+        .questionText("Bumi berbentuk bulat?")
+        .questionType("TRUE_FALSE")
+        .options(List.of("True", "False"))
+        .userAnswer("False")
+        .correctAnswer("True")
+        .isCorrect(false)
+        .build();
+
+    QuizResultResponse resultResponse = QuizResultResponse.builder()
+        .readingId(readingId)
+        .score(50)
+        .accuracy(0.5)
+        .totalQuestions(2)
+        .correctAnswers(1)
+        .completedAt(LocalDateTime.of(2026, 5, 20, 10, 0))
+        .questionDetails(List.of(detail1, detail2))
+        .build();
+
+    when(quizService.getQuizResult(userId, readingId)).thenReturn(resultResponse);
+
+    mockMvc.perform(get("/api/student/quiz/readings/{readingId}/result", readingId)
+            .header("userId", userId))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.readingId").value(readingId))
+        .andExpect(jsonPath("$.score").value(50))
+        .andExpect(jsonPath("$.accuracy").value(0.5))
+        .andExpect(jsonPath("$.totalQuestions").value(2))
+        .andExpect(jsonPath("$.correctAnswers").value(1))
+        .andExpect(jsonPath("$.questionDetails.length()").value(2))
+
+        .andExpect(jsonPath("$.questionDetails[0].questionId").value("q1"))
+        .andExpect(jsonPath("$.questionDetails[0].userAnswer").value("Jakarta"))
+        .andExpect(jsonPath("$.questionDetails[0].correctAnswer").value("Jakarta"))
+        .andExpect(jsonPath("$.questionDetails[0].correct").value(true))
+
+        .andExpect(jsonPath("$.questionDetails[1].questionId").value("q2"))
+        .andExpect(jsonPath("$.questionDetails[1].userAnswer").value("False"))
+        .andExpect(jsonPath("$.questionDetails[1].correctAnswer").value("True"))
+        .andExpect(jsonPath("$.questionDetails[1].correct").value(false));
+
+    verify(quizService, times(1)).getQuizResult(userId, readingId);
+  }
+
+  @Test
+  void getQuizResult_whenInvalidUserId_shouldReturnBadRequest() throws Exception {
+    String[] invalidUserIds = {"user@123", "user 123", "user_123", "", " "};
+
+    for (String invalidId : invalidUserIds) {
+      mockMvc.perform(get("/api/student/quiz/readings/{readingId}/result", "r1")
+              .header("userId", invalidId))
+          .andExpect(status().isBadRequest())
+          .andExpect(content().string("Invalid user id format"));
+    }
+  }
+
+  @Test
+  void getQuizResult_whenQuizNotCompleted_shouldReturnBadRequest() throws Exception {
+    String userId = "user123";
+    String readingId = "reading1";
+
+    when(quizService.getQuizResult(userId, readingId))
+        .thenThrow(new IllegalArgumentException(
+            "Quiz result not found. User has not completed this quiz."));
+
+    mockMvc.perform(get("/api/student/quiz/readings/{readingId}/result", readingId)
+            .header("userId", userId))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string("Quiz result not found. User has not completed this quiz."));
   }
 }
