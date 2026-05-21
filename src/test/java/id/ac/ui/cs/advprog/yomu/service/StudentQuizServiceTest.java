@@ -13,6 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -99,6 +100,9 @@ class StudentQuizServiceTest {
 
     when(quizRepository.findByReadingId(readingId)).thenReturn(questions);
 
+    when(quizService.isAnswerCorrect(eq("A"), eq("A"), eq(q1))).thenReturn(true);
+    when(quizService.isAnswerCorrect(eq("B"), eq("B"), eq(q2))).thenReturn(true);
+
     QuizSubmitResponse response = studentQuizService.submitQuiz(userId, readingId, request);
 
     assertEquals(100, response.getScore());
@@ -109,8 +113,7 @@ class StudentQuizServiceTest {
 
     assertTrue(response.getQuestionResults().get("q1"));
     assertTrue(response.getQuestionResults().get("q2"));
-
-    verify(quizService).completeQuiz(userId, readingId, 100, 1.0);
+    verify(quizService).completeQuiz(userId, readingId, 100, 1.0, answers);
   }
 
   @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
@@ -142,6 +145,9 @@ class StudentQuizServiceTest {
 
     when(quizRepository.findByReadingId(readingId)).thenReturn(questions);
 
+    when(quizService.isAnswerCorrect(eq("A"), eq("A"), eq(q1))).thenReturn(true);
+    when(quizService.isAnswerCorrect(eq("C"), eq("B"), eq(q2))).thenReturn(false);
+
     QuizSubmitResponse response = studentQuizService.submitQuiz(userId, readingId, request);
 
     assertEquals(50, response.getScore());
@@ -150,8 +156,7 @@ class StudentQuizServiceTest {
 
     assertTrue(response.getQuestionResults().get("q1"));
     assertFalse(response.getQuestionResults().get("q2"));
-
-    verify(quizService).completeQuiz(userId, readingId, 50, 0.5);
+    verify(quizService).completeQuiz(userId, readingId, 50, 0.5, answers);
   }
 
   @Test
@@ -240,6 +245,8 @@ class StudentQuizServiceTest {
 
     when(quizRepository.findByReadingId(readingId)).thenReturn(List.of(question));
 
+    when(quizService.isAnswerCorrect(eq("  a  "), eq("A"), eq(question))).thenReturn(true);
+
     QuizSubmitResponse response = studentQuizService.submitQuiz(userId, readingId, request);
 
     assertEquals(100, response.getScore());
@@ -262,9 +269,64 @@ class StudentQuizServiceTest {
 
     when(quizRepository.findByReadingId(readingId)).thenReturn(List.of(question));
 
+    when(quizService.isAnswerCorrect(isNull(), eq("A"), eq(question))).thenReturn(false);
+
     QuizSubmitResponse response = studentQuizService.submitQuiz(userId, readingId, request);
 
     assertEquals(0, response.getScore());
     assertFalse(response.getQuestionResults().get("q1"));
+  }
+
+  @Test
+  void testIsAnswerCorrectReflectionCorrect() throws Exception {
+    StudentQuizService service = new StudentQuizService(
+        quizRepository,
+        userProgressRepository,
+        quizService
+    );
+
+    Method method = StudentQuizService.class
+        .getDeclaredMethod("isAnswerCorrect", String.class, String.class);
+
+    method.setAccessible(true);
+
+    boolean result = (boolean) method.invoke(service, "A", "A");
+
+    assertTrue(result);
+  }
+
+  @Test
+  void testIsAnswerCorrectReflectionIgnoreCase() throws Exception {
+    StudentQuizService service = new StudentQuizService(
+        quizRepository,
+        userProgressRepository,
+        quizService
+    );
+
+    Method method = StudentQuizService.class
+        .getDeclaredMethod("isAnswerCorrect", String.class, String.class);
+
+    method.setAccessible(true);
+
+    assertTrue((boolean) method.invoke(service, "a", "A"));
+    assertTrue((boolean) method.invoke(service, "  b  ", "B"));
+  }
+
+  @Test
+  void testIsAnswerCorrect_reflection_nullHandling() throws Exception {
+    StudentQuizService service = new StudentQuizService(
+        quizRepository,
+        userProgressRepository,
+        quizService
+    );
+
+    Method method = StudentQuizService.class
+        .getDeclaredMethod("isAnswerCorrect", String.class, String.class);
+
+    method.setAccessible(true);
+
+    assertFalse((boolean) method.invoke(service, null, "A"));
+    assertFalse((boolean) method.invoke(service, "A", null));
+    assertFalse((boolean) method.invoke(service, null, null));
   }
 }

@@ -33,7 +33,7 @@ public class QuizService {
   private final RestTemplate restTemplate;
   private final QuizRepository quizRepository;
 
-  @Value("${achievement.service.url:http://be-achievement:8081}")
+  @Value("${achievement.service.url:http://be-achievement:8083}")
   private String achievementServiceUrl;
 
   private String validateId(String id) {
@@ -84,10 +84,13 @@ public class QuizService {
 
     userProgressRepository.save(progress);
 
+    Reading reading = readingRepository.findById(cleanReadingId)
+        .orElseThrow(() -> new IllegalArgumentException("Reading not found"));
+
     eventPublisher.publishEvent(
         new QuizCompletionEvent(this, progress.getUserId(), progress.getReadingId()));
 
-    notifyAchievementService(cleanUserId, score, accuracy);
+    notifyAchievementService(cleanUserId, reading, score, accuracy);
   }
 
   public QuizResultResponse getQuizResult(String userId, String readingId) {
@@ -128,17 +131,11 @@ public class QuizService {
         .score(progress.getScore())
         .accuracy(progress.getAccuracy())
         .totalQuestions(questions.size())
-        .correctAnswers((int) details.stream().filter(QuizResultResponse.QuestionResultDetail::isCorrect).count())
+        .correctAnswers((int) details.stream().filter(QuizResultResponse
+            .QuestionResultDetail::isCorrect).count())
         .completedAt(progress.getCompletedAt())
         .questionDetails(details)
         .build();
-  }
-
-  private boolean isAnswerCorrect(String userAnswer, String correctAnswer) {
-    if (userAnswer == null || correctAnswer == null) {
-      return false;
-    }
-    return userAnswer.trim().toUpperCase().equals(correctAnswer.trim().toUpperCase());
   }
 
   public boolean isAnswerCorrect(String userAnswer, String correctAnswer, Question question) {
@@ -146,7 +143,8 @@ public class QuizService {
       return false;
     }
 
-    if ("MULTIPLE_CHOICE".equalsIgnoreCase(question.getQuestionType()) && correctAnswer.trim().length() == 1) {
+    if ("MULTIPLE_CHOICE".equalsIgnoreCase(question.getQuestionType())
+        && correctAnswer.trim().length() == 1) {
       String resolvedCorrect = resolveCorrectAnswerText(question, correctAnswer);
       return userAnswer.trim().equalsIgnoreCase(resolvedCorrect.trim());
     }
@@ -154,10 +152,18 @@ public class QuizService {
     return userAnswer.trim().equalsIgnoreCase(correctAnswer.trim());
   }
 
-  private void notifyAchievementService(String userId, int score, double accuracy) {
+  private void notifyAchievementService(String userId, Reading reading,
+                                        int score, double accuracy) {
     try {
       String url = achievementServiceUrl + "/api/events/quiz-completed";
-      QuizCompletedEvent event = new QuizCompletedEvent(userId, score, accuracy);
+      QuizCompletedEvent event = new QuizCompletedEvent(
+          userId, 
+          reading.getId(), 
+          reading.getCategory(), 
+          reading.getDifficultyLevel(), 
+          score, 
+          accuracy
+      );
       restTemplate.postForObject(url, event, String.class);
       log.info("Successfully notified be-achievement for user {}", userId);
     } catch (Exception e) {

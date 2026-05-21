@@ -128,11 +128,17 @@ class QuizServiceTest {
   void testCompleteQuizSuccess() {
     String userId = "user123";
     String readingId = "reading-456";
+    when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
+        .thenReturn(false);
+
+    Reading reading = new Reading();
+    reading.setId(readingId);
+    reading.setCategory("NEWS");
+    reading.setDifficultyLevel("BEGINNER");
     int score = 80;
     double accuracy = 0.9;
 
-    when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
-        .thenReturn(false);
+    when(readingRepository.findById(readingId)).thenReturn(Optional.of(reading));
 
     quizService.completeQuiz(userId, readingId, score, accuracy);
 
@@ -164,10 +170,17 @@ class QuizServiceTest {
   void testCompleteQuizWithUserAnswersSavesAnswers() {
     String userId = "user123";
     String readingId = "reading-456";
-    Map<String, String> answers = Map.of("q1", "A", "q2", "True");
 
     when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
         .thenReturn(false);
+
+    Reading reading = new Reading();
+    reading.setId(readingId);
+    reading.setCategory("NEWS");
+    reading.setDifficultyLevel("BEGINNER");
+    Map<String, String> answers = Map.of("q1", "A", "q2", "True");
+
+    when(readingRepository.findById(readingId)).thenReturn(Optional.of(reading));
 
     quizService.completeQuiz(userId, readingId, 80, 0.8, answers);
 
@@ -221,6 +234,12 @@ class QuizServiceTest {
     when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
         .thenReturn(false);
 
+    Reading reading = new Reading();
+    reading.setId(readingId);
+    reading.setCategory("NEWS");
+    reading.setDifficultyLevel("BEGINNER");
+    when(readingRepository.findById(readingId)).thenReturn(Optional.of(reading));
+
     when(restTemplate.postForObject(anyString(), any(), eq(String.class)))
         .thenThrow(new RuntimeException("Achievement service down!"));
 
@@ -233,9 +252,6 @@ class QuizServiceTest {
   // =============================
   @Test
   void testGetQuizResultSuccess() {
-    String userId = "user123";
-    String readingId = "reading-456";
-
     Question q1 = new Question();
     q1.setId("q1");
     q1.setText("Apa ibu kota Indonesia?");
@@ -249,6 +265,9 @@ class QuizServiceTest {
     q2.setQuestionType("TRUE_FALSE");
     q2.setOptions(List.of("True", "False"));
     q2.setCorrectAnswer("True");
+
+    String userId = "user123";
+    String readingId = "reading-456";
 
     UserProgress progress = new UserProgress();
     progress.setUserId(userId);
@@ -309,15 +328,15 @@ class QuizServiceTest {
 
   @Test
   void testGetQuizResultNullAnswerTreatedAsIncorrect() {
-    String userId = "user123";
-    String readingId = "reading-456";
-
     Question q1 = new Question();
     q1.setId("q1");
     q1.setText("Pertanyaan 1");
     q1.setQuestionType("MULTIPLE_CHOICE");
     q1.setOptions(List.of("A", "B", "C"));
     q1.setCorrectAnswer("A");
+
+    String userId = "user123";
+    String readingId = "reading-456";
 
     UserProgress progress = new UserProgress();
     progress.setUserId(userId);
@@ -338,5 +357,136 @@ class QuizServiceTest {
     assertEquals(0, result.getCorrectAnswers());
     assertNull(result.getQuestionDetails().get(0).getUserAnswer());
     assertFalse(result.getQuestionDetails().get(0).isCorrect());
+  }
+
+  @Test
+  void testIsAnswerCorrectMultipleChoiceLetterMapping() {
+    Question question = new Question();
+    question.setQuestionType("MULTIPLE_CHOICE");
+    question.setOptions(List.of("Jakarta", "Bandung", "Surabaya"));
+
+    boolean result = quizService.isAnswerCorrect(
+        "Bandung", "B",
+        question
+    );
+
+    assertTrue(result);
+  }
+
+  @Test
+  void testGetQuizResultResolvesCorrectAnswerFromLetter() {
+    Question question = new Question();
+    question.setId("q1");
+    question.setText("Apa ibu kota Jawa Barat?");
+    question.setQuestionType("MULTIPLE_CHOICE");
+    question.setOptions(List.of("Jakarta", "Bandung", "Surabaya"));
+    question.setCorrectAnswer("B");
+
+    UserProgress progress = new UserProgress();
+    progress.setUserId("user123");
+    progress.setReadingId("reading456");
+    progress.setScore(100);
+    progress.setAccuracy(1.0);
+    progress.setCompletedAt(LocalDateTime.now());
+
+    progress.setUserAnswers(Map.of("q1", "Bandung"));
+
+    when(userProgressRepository.findByUserIdAndReadingId(
+        "user123", "reading456"))
+        .thenReturn(Optional.of(progress));
+
+    when(quizRepository.findByReadingId("reading456"))
+        .thenReturn(List.of(question));
+
+    QuizResultResponse result = quizService
+        .getQuizResult("user123", "reading456");
+
+    QuizResultResponse.QuestionResultDetail detail =
+        result.getQuestionDetails().get(0);
+
+    assertEquals("Bandung", detail.getCorrectAnswer());
+    assertEquals("Bandung", detail.getUserAnswer());
+    assertTrue(detail.isCorrect());
+  }
+
+  @Test
+  void testIsAnswerCorrectMultipleChoiceWrongAnswer() {
+    Question q = new Question();
+    q.setQuestionType("MULTIPLE_CHOICE");
+    q.setOptions(List.of("A", "B", "C"));
+
+    boolean result = quizService.isAnswerCorrect("B", "A", q);
+
+    assertFalse(result);
+  }
+
+  @Test
+  void testResolveCorrectAnswerTextOutOfRangeLetter() {
+    Question q = new Question();
+    q.setQuestionType("MULTIPLE_CHOICE");
+    q.setOptions(List.of("A"));
+
+    String userId = "user123";
+    String readingId = "reading-456";
+
+    UserProgress progress = new UserProgress();
+    progress.setUserId(userId);
+    progress.setReadingId(readingId);
+    progress.setScore(0);
+    progress.setAccuracy(0.0);
+    progress.setCompletedAt(LocalDateTime.now());
+    progress.setUserAnswers(Map.of("q1", "Z"));
+
+    Question q1 = new Question();
+    q1.setId("q1");
+    q1.setQuestionType("MULTIPLE_CHOICE");
+    q1.setOptions(List.of("A"));
+    q1.setCorrectAnswer("Z"); // invalid index
+
+    when(userProgressRepository.findByUserIdAndReadingId(userId, readingId))
+        .thenReturn(Optional.of(progress));
+    when(quizRepository.findByReadingId(readingId))
+        .thenReturn(List.of(q1));
+
+    QuizResultResponse result = quizService.getQuizResult(userId, readingId);
+
+    assertEquals("Z", result.getQuestionDetails().get(0).getCorrectAnswer());
+  }
+
+  @Test
+  void testGetQuizResultWhenQuestionOptionsNull() {
+    Question question = new Question();
+    question.setId("q1");
+    question.setText("Essay question");
+    question.setQuestionType("ESSAY");
+
+    question.setOptions(null);
+
+    question.setCorrectAnswer("Java");
+
+    UserProgress progress = new UserProgress();
+    progress.setUserId("user123");
+    progress.setReadingId("reading456");
+    progress.setScore(100);
+    progress.setAccuracy(1.0);
+    progress.setCompletedAt(LocalDateTime.now());
+
+    progress.setUserAnswers(Map.of("q1", "Java"));
+
+    when(userProgressRepository.findByUserIdAndReadingId(
+        "user123", "reading456"))
+        .thenReturn(Optional.of(progress));
+
+    when(quizRepository.findByReadingId("reading456"))
+        .thenReturn(List.of(question));
+
+    QuizResultResponse result =
+        quizService.getQuizResult("user123", "reading456");
+
+    QuizResultResponse.QuestionResultDetail detail =
+        result.getQuestionDetails().get(0);
+
+    assertEquals("Java", detail.getCorrectAnswer());
+    assertTrue(detail.isCorrect());
   }
 }
