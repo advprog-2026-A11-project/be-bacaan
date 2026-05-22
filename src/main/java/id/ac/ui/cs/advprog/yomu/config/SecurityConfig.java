@@ -1,27 +1,29 @@
 package id.ac.ui.cs.advprog.yomu.config;
 
-import id.ac.ui.cs.advprog.yomu.security.SupabaseJwtFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@ConditionalOnProperty(name = "app.security.enabled", havingValue = "true", matchIfMissing = true)
+@EnableMethodSecurity
 public class SecurityConfig {
 
   @Value("${supabase.url:}")
@@ -43,29 +45,57 @@ public class SecurityConfig {
   }
 
   @Bean
-  public SupabaseJwtFilter supabaseJwtFilter(JwtDecoder jwtDecoder) {
-    return new SupabaseJwtFilter(jwtDecoder);
+  public JwtAuthenticationConverter jwtAuthenticationConverter() {
+    JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+    // Supabase menyimpan role di klaim "role"
+    grantedAuthoritiesConverter.setAuthoritiesClaimName("role");
+    grantedAuthoritiesConverter.setAuthorityPrefix("ROLE_");
+
+    JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+    jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
+      String appRole = jwt.getClaimAsString("user_role");
+      String supabaseRole = jwt.getClaimAsString("role");
+
+      String resolvedRole;
+      if (StringUtils.hasText(appRole)) {
+        resolvedRole = appRole.toUpperCase();
+      } else if ("authenticated".equals(supabaseRole)) {
+        resolvedRole = "STUDENT";
+      } else {
+        resolvedRole = StringUtils.hasText(supabaseRole) ? supabaseRole.toUpperCase() : "STUDENT";
+      }
+
+      return List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + resolvedRole));
+    });
+
+    return jwtAuthenticationConverter;
   }
 
   @Bean
-  public SecurityFilterChain securityFilterChain(
-      HttpSecurity http,
-      SupabaseJwtFilter supabaseJwtFilter) throws Exception {
-
+  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
         .csrf(csrf -> csrf.disable())
         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
         .sessionManagement(session ->
             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
         .authorizeHttpRequests(auth -> auth
-            // 3. Pastikan permitAll() mencakup endpoint create
-            .requestMatchers("/api/admin/readings/**").permitAll()
-            .anyRequest().permitAll()
-        );
+            // Endpoint publik: daftar semua bacaan boleh diakses tanpa login
+            .requestMatchers(HttpMethod.GET, "/api/student/readings").permitAll()
+            .requestMatchers(HttpMethod.GET, "/api/student/readings/").permitAll()
 
-    // .addFilterBefore(supabaseJwtFilter, UsernamePasswordAuthenticationFilter.class);
+            // Endpoint admin: hanya role ADMIN
+            .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+            // Semua endpoint student lainnya: wajib login (token valid)
+            .requestMatchers("/api/student/**").authenticated()
+
+            // Endpoint lain: tolak
+            .anyRequest().authenticated()
+        )
+        // Aktifkan OAuth2 Resource Server dengan JWT
+        .oauth2ResourceServer(oauth2 -> oauth2
+            .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
+        );
 
     return http.build();
   }
@@ -76,7 +106,8 @@ public class SecurityConfig {
     config.setAllowedOriginPatterns(List.of(
         "http://localhost:3000",
         "http://localhost:3001",
-        "https://*.vercel.app"   // untuk deployment
+        "https://*.vercel.app",
+        "https://*.up.railway.app"
     ));
     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
     config.setAllowedHeaders(List.of("*"));

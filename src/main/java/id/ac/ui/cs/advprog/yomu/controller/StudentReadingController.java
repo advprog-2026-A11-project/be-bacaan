@@ -8,16 +8,13 @@ import id.ac.ui.cs.advprog.yomu.service.QuizService;
 import id.ac.ui.cs.advprog.yomu.service.StudentReadingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/api/student/readings")
 @RequiredArgsConstructor
 public class StudentReadingController {
@@ -25,13 +22,15 @@ public class StudentReadingController {
   private final QuizService quizService;
   private final StudentReadingService studentReadingService;
 
+  /**
+   * Mendapatkan detail satu bacaan. userId diambil dari JWT token secara otomatis.
+   */
   @GetMapping("/{readingId}")
-  public ResponseEntity<ReadingResponse> getReading(@RequestHeader(value = "userId") String userId,
-                                      @PathVariable String readingId) {
+  public ResponseEntity<ReadingResponse> getReading(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable String readingId) {
 
-    if (!isValidId(userId)) {
-      throw new IllegalArgumentException("Invalid User ID format");
-    }
+    String userId = jwt.getSubject();
 
     if (!isValidId(readingId)) {
       throw new IllegalArgumentException("Invalid Reading ID format");
@@ -50,14 +49,17 @@ public class StudentReadingController {
     return ResponseEntity.ok(response);
   }
 
+  /**
+   * Menandai bacaan sebagai selesai dan menyimpan skor quiz.
+   * userId diambil dari JWT token secara otomatis.
+   */
   @PostMapping("/{readingId}/complete")
-  public ResponseEntity<String> completeQuiz(@RequestHeader String userId,
-                                             @PathVariable String readingId,
-                                             @RequestBody CompletedQuizRequest request) {
+  public ResponseEntity<String> completeQuiz(
+      @AuthenticationPrincipal Jwt jwt,
+      @PathVariable String readingId,
+      @RequestBody CompletedQuizRequest request) {
 
-    if (!isValidId(userId)) {
-      return ResponseEntity.badRequest().body("Invalid User ID format");
-    }
+    String userId = jwt.getSubject();
 
     if (!isValidId(readingId)) {
       return ResponseEntity.badRequest().body("Invalid Reading ID format");
@@ -68,12 +70,22 @@ public class StudentReadingController {
     return ResponseEntity.ok("Thank you for completing the quiz!");
   }
 
-  @GetMapping("/stats/{userId}")
-  public ResponseEntity<UserStatsResponse> getUserStats(@PathVariable String userId) {
+  /**
+   * Mendapatkan statistik user yang sedang login.
+   * userId diambil dari JWT token, bukan dari path variable,
+   * agar user tidak bisa melihat statistik orang lain.
+   */
+  @GetMapping("/stats")
+  public ResponseEntity<UserStatsResponse> getUserStats(
+      @AuthenticationPrincipal Jwt jwt) {
+
+    String userId = jwt.getSubject();
     return ResponseEntity.ok(studentReadingService.getUserStats(userId));
   }
 
-  // get all readings
+  /**
+   * Mendapatkan semua bacaan. Endpoint ini bersifat publik (tanpa login).
+   */
   @GetMapping
   public ResponseEntity<List<Reading>> getAllReadings() {
     return ResponseEntity.ok(studentReadingService.getAllReadings());

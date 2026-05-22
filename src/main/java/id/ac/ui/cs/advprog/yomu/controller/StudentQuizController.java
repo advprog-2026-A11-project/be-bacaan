@@ -10,27 +10,27 @@ import id.ac.ui.cs.advprog.yomu.service.StudentQuizService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/student/quiz")
 @RequiredArgsConstructor
 public class StudentQuizController {
+
   private final StudentQuizService studentQuizService;
   private final QuizService quizService;
 
   @GetMapping("/readings/{readingId}/questions")
   public ResponseEntity<List<QuizQuestionResponse>> getQuizQuestion(
-      @RequestHeader("userId") String userId,
+      @AuthenticationPrincipal Jwt jwt,
       @PathVariable String readingId) {
 
-    if (userId == null || !userId.matches("^[a-zA-Z0-9-]+$")) {
-      throw new IllegalArgumentException("Invalid user id format");
-    }
+    String userId = jwt.getSubject();
 
     List<Question> questions = studentQuizService.getQuizQuestion(userId, readingId);
     List<QuizQuestionResponse> responses = questions.stream()
@@ -42,13 +42,11 @@ public class StudentQuizController {
 
   @PostMapping("/readings/{readingId}/submit")
   public ResponseEntity<QuizSubmitResponse> submitQuiz(
-      @RequestHeader("userId") String userId,
+      @AuthenticationPrincipal Jwt jwt,
       @PathVariable String readingId,
       @Valid @RequestBody QuizSubmitRequest request) {
 
-    if (userId == null || !userId.matches("^[a-zA-Z0-9-]+$")) {
-      throw new IllegalArgumentException("Invalid user id format");
-    }
+    String userId = jwt.getSubject();
 
     QuizSubmitResponse response = studentQuizService.submitQuiz(userId, readingId, request);
     return ResponseEntity.ok(response);
@@ -60,12 +58,10 @@ public class StudentQuizController {
    */
   @GetMapping("/readings/{readingId}/result")
   public ResponseEntity<QuizResultResponse> getQuizResult(
-      @RequestHeader("userId") String userId,
+      @AuthenticationPrincipal Jwt jwt,
       @PathVariable String readingId) {
 
-    if (userId == null || !userId.matches("^[a-zA-Z0-9-]+$")) {
-      throw new IllegalArgumentException("Invalid user id format");
-    }
+    String userId = jwt.getSubject();
 
     QuizResultResponse result = quizService.getQuizResult(userId, readingId);
     return ResponseEntity.ok(result);
