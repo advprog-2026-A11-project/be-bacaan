@@ -2,6 +2,7 @@ package id.ac.ui.cs.advprog.yomu.service;
 
 import id.ac.ui.cs.advprog.yomu.dto.QuizCompletedEvent;
 import id.ac.ui.cs.advprog.yomu.dto.QuizResultResponse;
+import id.ac.ui.cs.advprog.yomu.dto.ScoreUpdateRequest;
 import id.ac.ui.cs.advprog.yomu.entity.Question;
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
 import id.ac.ui.cs.advprog.yomu.entity.UserProgress;
@@ -35,6 +36,9 @@ public class QuizService {
 
   @Value("${achievement.service.url:http://be-achievement:8083}")
   private String achievementServiceUrl;
+
+  @Value("${league.service.url:http://be-liga:8084}")
+  private String leagueServiceUrl;
 
   private String validateId(String id) {
     if (id == null) {
@@ -91,6 +95,7 @@ public class QuizService {
         new QuizCompletionEvent(this, progress.getUserId(), progress.getReadingId()));
 
     notifyAchievementService(cleanUserId, reading, score, accuracy);
+    notifyLeagueService(cleanUserId, score, accuracy);
   }
 
   public QuizResultResponse getQuizResult(String userId, String readingId) {
@@ -168,6 +173,22 @@ public class QuizService {
       log.info("Successfully notified be-achievement for user {}", userId);
     } catch (Exception e) {
       log.error("Failed to notify be-achievement service for user {}: {}", userId, e.getMessage());
+    }
+  }
+
+  private void notifyLeagueService(String userId, int score, double accuracy) {
+    try {
+      String url = leagueServiceUrl + "/api/internal/score-update";
+      ScoreUpdateRequest request = ScoreUpdateRequest.builder()
+          .userId(userId)
+          .score(score)
+          .accuracy(accuracy)
+          .isAquiz(true)
+          .build();
+      restTemplate.postForObject(url, request, Void.class);
+      log.info("Successfully notified be-liga for user {}", userId);
+    } catch (Exception e) {
+      log.error("Failed to notify be-liga service for user {}: {}", userId, e.getMessage());
     }
   }
 
