@@ -46,8 +46,9 @@ public class SecurityConfig {
 
   @Bean
   public JwtAuthenticationConverter jwtAuthenticationConverter() {
-    JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
-    // Supabase menyimpan role di klaim "role"
+    JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter =
+        new JwtGrantedAuthoritiesConverter();
+
     grantedAuthoritiesConverter.setAuthoritiesClaimName("role");
     grantedAuthoritiesConverter.setAuthorityPrefix("ROLE_");
 
@@ -65,7 +66,8 @@ public class SecurityConfig {
         resolvedRole = StringUtils.hasText(supabaseRole) ? supabaseRole.toUpperCase() : "STUDENT";
       }
 
-      return List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + resolvedRole));
+      return List.of(new org.springframework.security.core.authority
+          .SimpleGrantedAuthority("ROLE_" + resolvedRole));
     });
 
     return jwtAuthenticationConverter;

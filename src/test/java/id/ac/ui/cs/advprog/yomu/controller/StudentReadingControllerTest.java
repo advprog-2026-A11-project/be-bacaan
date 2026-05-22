@@ -96,7 +96,8 @@ class StudentReadingControllerTest {
     request.setScore(80);
     request.setAccuracy(90);
 
-    ResponseEntity<String> response = readingController.completeQuiz(jwt(userId), readingId, request);
+    ResponseEntity<String> response = readingController
+        .completeQuiz(jwt(userId), readingId, request);
 
     assertEquals(200, response.getStatusCodeValue());
     assertEquals("Thank you for completing the quiz!", response.getBody());

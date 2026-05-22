@@ -197,7 +197,6 @@ class QuizServiceTest {
   void testCompleteQuizWithTimeTakenSavesDuration() {
     String userId = "user123";
     String readingId = "reading-456";
-    Map<String, String> answers = Map.of("q1", "A");
 
     when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
         .thenReturn(false);
@@ -206,6 +205,8 @@ class QuizServiceTest {
     reading.setId(readingId);
     reading.setCategory("NEWS");
     reading.setDifficultyLevel("BEGINNER");
+    Map<String, String> answers = Map.of("q1", "A");
+
     when(readingRepository.findById(readingId)).thenReturn(Optional.of(reading));
 
     quizService.completeQuiz(userId, readingId, 80, 80, answers, 95);
