@@ -15,7 +15,8 @@ public class QuizCompletedEvent {
 
   public QuizCompletedEvent() {}
 
-  public QuizCompletedEvent(String userId, String readingId, String category, String difficultyLevel, int score, double accuracy) {
+  public QuizCompletedEvent(String userId, String readingId, String category,
+                            String difficultyLevel, int score, double accuracy) {
     this.eventId = UUID.randomUUID().toString();
     this.userId = userId;
     this.readingId = readingId;
