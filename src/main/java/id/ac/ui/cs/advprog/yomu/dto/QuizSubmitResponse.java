@@ -11,8 +11,9 @@ import java.util.Map;
 @Builder
 public class QuizSubmitResponse {
   private int score;
-  private double accuracy;
+  private int accuracy;
   private int totalQuestions;
   private int correctAnswers;
+  private double timeTaken;
   private Map<String, Boolean> questionResults;
 }

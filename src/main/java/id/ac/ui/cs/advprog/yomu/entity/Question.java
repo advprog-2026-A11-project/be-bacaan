@@ -1,5 +1,6 @@
 package id.ac.ui.cs.advprog.yomu.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.ArrayList;
@@ -35,5 +36,6 @@ public class Question {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "reading_id", nullable = false)
+  @JsonIgnore
   private Reading reading;
 }

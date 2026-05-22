@@ -10,7 +10,6 @@ import java.util.Map;
 @Setter
 public class QuizSubmitRequest {
   @NotNull(message = "Answers cannot be null")
-  @Size(min = 1, message = "At least one answer required")
   private Map<String, String> answers; // key: questionId, value: userAnswer
 
   @Min(value = 0, message = "Time taken must be positive")

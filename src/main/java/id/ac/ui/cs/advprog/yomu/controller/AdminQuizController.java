@@ -40,7 +40,7 @@ public class AdminQuizController {
 
     List<AdminQuestionResponse> responses = questions.stream()
         .map(this::mapToAdminResponse)
-        .collect(Collectors.toList());
+        .toList();
 
     return ResponseEntity.ok(responses);
   }

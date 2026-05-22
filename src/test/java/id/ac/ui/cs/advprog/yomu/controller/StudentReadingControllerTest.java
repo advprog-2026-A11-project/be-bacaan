@@ -2,10 +2,12 @@ package id.ac.ui.cs.advprog.yomu.controller;
 
 import id.ac.ui.cs.advprog.yomu.dto.CompletedQuizRequest;
 import id.ac.ui.cs.advprog.yomu.dto.ReadingResponse;
+import id.ac.ui.cs.advprog.yomu.dto.UserStatsResponse;
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
 import id.ac.ui.cs.advprog.yomu.service.QuizService;
 import id.ac.ui.cs.advprog.yomu.service.StudentReadingService;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.util.List;
 
@@ -55,7 +58,7 @@ class StudentReadingControllerTest {
 
     when(studentReadingService.getReading(userId, readingId)).thenReturn(reading);
 
-    ResponseEntity<?> response = readingController.getReading(userId, readingId);
+    ResponseEntity<?> response = readingController.getReading(jwt(userId), readingId);
 
     assertEquals(200, response.getStatusCodeValue());
 
@@ -75,7 +78,7 @@ class StudentReadingControllerTest {
         .thenThrow(new IllegalStateException("Quiz already completed"));
 
     IllegalStateException ex = assertThrows(IllegalStateException.class,
-        () -> readingController.getReading(userId, readingId));
+        () -> readingController.getReading(jwt(userId), readingId));
 
     assertEquals("Quiz already completed", ex.getMessage());
     verify(studentReadingService, times(1)).getReading(userId, readingId);
@@ -91,13 +94,14 @@ class StudentReadingControllerTest {
 
     CompletedQuizRequest request = new CompletedQuizRequest();
     request.setScore(80);
-    request.setAccuracy(0.9);
+    request.setAccuracy(90);
 
-    ResponseEntity<String> response = readingController.completeQuiz(userId, readingId, request);
+    ResponseEntity<String> response = readingController
+        .completeQuiz(jwt(userId), readingId, request);
 
     assertEquals(200, response.getStatusCodeValue());
     assertEquals("Thank you for completing the quiz!", response.getBody());
-    verify(quizService, times(1)).completeQuiz(userId, readingId, 80, 0.9);
+    verify(quizService, times(1)).completeQuiz(userId, readingId, 80, 90);
   }
 
   @Test
@@ -107,15 +111,15 @@ class StudentReadingControllerTest {
 
     CompletedQuizRequest request = new CompletedQuizRequest();
     request.setScore(80);
-    request.setAccuracy(0.9);
+    request.setAccuracy(90);
 
-    ResponseEntity<String> response = readingController
-        .completeQuiz(invalidUserId, readingId, request);
+    IllegalArgumentException exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> readingController.completeQuiz(jwt(invalidUserId), readingId, request)
+    );
 
-    assertEquals(400, response.getStatusCodeValue());
-    assertEquals("Invalid User ID format", response.getBody());
-    verify(quizService, never())
-        .completeQuiz(anyString(), anyString(), anyInt(), anyDouble());
+    assertEquals("Invalid User ID format", exception.getMessage());
+    verify(quizService, never()).completeQuiz(anyString(), anyString(), anyInt(), anyInt());
   }
 
   @Test
@@ -124,15 +128,15 @@ class StudentReadingControllerTest {
 
     CompletedQuizRequest request = new CompletedQuizRequest();
     request.setScore(80);
-    request.setAccuracy(0.9);
+    request.setAccuracy(90);
 
-    ResponseEntity<String> response = readingController
-        .completeQuiz(null, readingId, request);
+    IllegalArgumentException exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> readingController.completeQuiz(null, readingId, request)
+    );
 
-    assertEquals(400, response.getStatusCodeValue());
-    assertEquals("Invalid User ID format", response.getBody());
-    verify(quizService, never())
-        .completeQuiz(anyString(), anyString(), anyInt(), anyDouble());
+    assertEquals("Invalid User ID format", exception.getMessage());
+    verify(quizService, never()).completeQuiz(anyString(), anyString(), anyInt(), anyInt());
   }
 
   @Test
@@ -142,15 +146,15 @@ class StudentReadingControllerTest {
 
     CompletedQuizRequest request = new CompletedQuizRequest();
     request.setScore(80);
-    request.setAccuracy(0.9);
+    request.setAccuracy(90);
 
     ResponseEntity<String> response = readingController
-        .completeQuiz(userId, invalidReadingId, request);
+        .completeQuiz(jwt(userId), invalidReadingId, request);
 
     assertEquals(400, response.getStatusCodeValue());
     assertEquals("Invalid Reading ID format", response.getBody());
     verify(quizService, never())
-        .completeQuiz(anyString(), anyString(), anyInt(), anyDouble());
+        .completeQuiz(anyString(), anyString(), anyInt(), anyInt());
   }
 
   @Test
@@ -159,15 +163,15 @@ class StudentReadingControllerTest {
 
     CompletedQuizRequest request = new CompletedQuizRequest();
     request.setScore(80);
-    request.setAccuracy(0.9);
+    request.setAccuracy(90);
 
     ResponseEntity<String> response = readingController
-        .completeQuiz(userId, null, request);
+        .completeQuiz(jwt(userId), null, request);
 
     assertEquals(400, response.getStatusCodeValue());
     assertEquals("Invalid Reading ID format", response.getBody());
     verify(quizService, never())
-        .completeQuiz(anyString(), anyString(), anyInt(), anyDouble());
+        .completeQuiz(anyString(), anyString(), anyInt(), anyInt());
   }
 
   @Test
@@ -177,14 +181,14 @@ class StudentReadingControllerTest {
 
     CompletedQuizRequest request = new CompletedQuizRequest();
     request.setScore(80);
-    request.setAccuracy(0.9);
+    request.setAccuracy(90);
 
     doThrow(new IllegalStateException("This quiz has been completed"))
         .when(quizService)
-        .completeQuiz(userId, readingId, 80, 0.9);
+        .completeQuiz(userId, readingId, 80, 90);
 
     IllegalStateException ex = assertThrows(IllegalStateException.class,
-        () -> readingController.completeQuiz(userId, readingId, request));
+        () -> readingController.completeQuiz(jwt(userId), readingId, request));
 
     assertEquals("This quiz has been completed", ex.getMessage());
     verify(quizService, times(1))
@@ -196,10 +200,12 @@ class StudentReadingControllerTest {
     String invalidUserId = "user 123!";
     String readingId = "reading456";
 
-    ResponseEntity<?> response = readingController.getReading(invalidUserId, readingId);
+    IllegalArgumentException exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> readingController.getReading(jwt(invalidUserId), readingId)
+    );
 
-    assertEquals(400, response.getStatusCodeValue());
-    assertEquals("Invalid User ID format", response.getBody());
+    assertEquals("Invalid User ID format", exception.getMessage());
     verify(studentReadingService, never()).getReading(anyString(), anyString());
   }
 
@@ -208,10 +214,12 @@ class StudentReadingControllerTest {
     String userId = "user123";
     String invalidReadingId = "reading 456!";
 
-    ResponseEntity<?> response = readingController.getReading(userId, invalidReadingId);
+    IllegalArgumentException exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> readingController.getReading(jwt(userId), invalidReadingId)
+    );
 
-    assertEquals(400, response.getStatusCodeValue());
-    assertEquals("Invalid Reading ID format", response.getBody());
+    assertEquals("Invalid Reading ID format", exception.getMessage());
     verify(studentReadingService, never()).getReading(anyString(), anyString());
   }
 
@@ -226,7 +234,7 @@ class StudentReadingControllerTest {
 
     when(studentReadingService.getReading(userId, readingId)).thenReturn(reading);
 
-    ResponseEntity<?> response = readingController.getReading(userId, readingId);
+    ResponseEntity<?> response = readingController.getReading(jwt(userId), readingId);
 
     assertEquals(200, response.getStatusCodeValue());
     verify(studentReadingService, times(1)).getReading(userId, readingId);
@@ -239,5 +247,36 @@ class StudentReadingControllerTest {
     mockMvc.perform(get("/api/student/readings")
             .header("userId", "user123"))
         .andExpect(status().isOk());
+  }
+
+  @Test
+  void testGetUserStatsSuccess() {
+    String userId = "user-123";
+
+    UserStatsResponse mockResponse = UserStatsResponse.builder()
+        .totalCompleted(10)
+        .completionFrequency(50)
+        .averageAccuracy(85.0)
+        .build();
+
+    when(studentReadingService.getUserStats(userId)).thenReturn(mockResponse);
+
+
+    ResponseEntity<UserStatsResponse> response =
+        readingController.getUserStats(jwt(userId));
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(mockResponse, response.getBody());
+
+    verify(studentReadingService, times(1)).getUserStats(userId);
+  }
+
+  private Jwt jwt(String userId) {
+    Jwt.Builder builder = Jwt.withTokenValue("token")
+        .header("alg", "none");
+    if (userId != null) {
+      builder.subject(userId);
+    }
+    return builder.build();
   }
 }

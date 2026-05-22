@@ -20,6 +20,7 @@ public class AdminReadingService {
     reading.setContent(dto.getContent());
     reading.setCategory(dto.getCategory());
     reading.setDifficultyLevel(dto.getDifficultyLevel());
+    reading.setQuizDurationMinutes(resolveQuizDurationMinutes(dto.getQuizDurationMinutes()));
     return readingRepository.save(reading);
   }
 
@@ -41,10 +42,18 @@ public class AdminReadingService {
     reading.setContent(dto.getContent());
     reading.setCategory(dto.getCategory());
     reading.setDifficultyLevel(dto.getDifficultyLevel());
+    reading.setQuizDurationMinutes(resolveQuizDurationMinutes(dto.getQuizDurationMinutes()));
   }
 
   public Reading getById(String id) {
     return readingRepository.findById(id)
         .orElseThrow(() -> new RuntimeException("Reading id is not found: " + id));
+  }
+
+  private Integer resolveQuizDurationMinutes(Integer quizDurationMinutes) {
+    if (quizDurationMinutes == null || quizDurationMinutes < 1) {
+      return 10;
+    }
+    return quizDurationMinutes;
   }
 }

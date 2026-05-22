@@ -12,12 +12,12 @@ on:
   schedule:
     - cron: '41 22 * * 5'
   push:
-    branches: [ "main" ]
+    branches: [ "main", "feat/bacaanNQuiz"]
   pull_request:
-    branches: [ "main" ,"staging" ]
+    branches: [ "main" ,"staging"]
 
 # Declare default permissions as read only.
-permissions: read-all
+permissions: read
 
 jobs:
   analysis:

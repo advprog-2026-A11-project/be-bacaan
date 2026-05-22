@@ -1,5 +1,10 @@
 package id.ac.ui.cs.advprog.yomu.service;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import id.ac.ui.cs.advprog.yomu.dto.QuizQuestionRequest;
 import id.ac.ui.cs.advprog.yomu.entity.Question;
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
@@ -8,10 +13,6 @@ import id.ac.ui.cs.advprog.yomu.repository.ReadingRepository;
 import id.ac.ui.cs.advprog.yomu.validator.QuizValidator;
 import id.ac.ui.cs.advprog.yomu.validator.QuizValidatorFactory;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -24,8 +25,7 @@ public class AdminQuizService {
   public Question addQuestion(String readingId, QuizQuestionRequest request) {
     validateReadingExists(readingId);
 
-    QuizValidator validator = validatorFactory
-        .getValidator(request.getQuestionType());
+    QuizValidator validator = validatorFactory.getValidator(request.getQuestionType());
     validator.validate(request);
 
     Reading reading = findReadingById(readingId);
@@ -39,7 +39,7 @@ public class AdminQuizService {
     Question question = findQuestionById(questionId);
 
     // Update text if provided
-    if (request.getText() != null && !request.getText().trim().isEmpty()) {
+    if (request.getText() != null) {
       validateQuestionText(request.getText());
       question.setText(request.getText());
     }
@@ -50,16 +50,14 @@ public class AdminQuizService {
 
       QuizValidator newValidator = validatorFactory
           .getValidator(request.getQuestionType());
-      request.setText(question.getText()); // Preserve text
+      request.setText(question.getText()); 
       newValidator.validate(request);
 
       // Update question fields
       question.setQuestionType(request.getQuestionType());
       newValidator.updateQuestion(question, request);
     } else {
-      // Same type - use existing validator
-      QuizValidator validator = validatorFactory
-          .getValidator(question.getQuestionType());
+      QuizValidator validator = validatorFactory.getValidator(question.getQuestionType());
       validator.updateQuestion(question, request);
     }
 
@@ -69,8 +67,7 @@ public class AdminQuizService {
   @Transactional
   public void deleteQuestion(String questionId) {
     if (!quizRepository.existsById(questionId)) {
-      throw new IllegalArgumentException(
-          "Question not found with id: " + questionId);
+      throw new IllegalArgumentException("Question not found with id: " + questionId);
     }
     quizRepository.deleteById(questionId);
   }
@@ -102,34 +99,31 @@ public class AdminQuizService {
 
   private void validateReadingExists(String readingId) {
     if (!readingRepository.existsById(readingId)) {
-      throw new IllegalArgumentException(
-          "Reading not found with id: " + readingId);
+      throw new IllegalArgumentException("Reading not found with id: " + readingId);
     }
   }
 
   private Reading findReadingById(String readingId) {
     return readingRepository.findById(readingId)
-        .orElseThrow(() -> new IllegalArgumentException(
-            "Reading not found with id: " + readingId));
+      .orElseThrow(() -> new IllegalArgumentException("Reading not found with id: " + readingId));
   }
 
   private Question findQuestionById(String questionId) {
     return quizRepository.findById(questionId)
-        .orElseThrow(() -> new IllegalArgumentException(
-            "Question not found with id: " + questionId));
+      .orElseThrow(() -> new IllegalArgumentException("Question not found with id: " + questionId));
   }
 
   private void validateQuestionText(String text) {
     if (text == null || text.trim().isEmpty()) {
       throw new IllegalArgumentException("Question text cannot be empty");
     }
+
     if (text.length() < 5) {
-      throw new IllegalArgumentException(
-          "Question text must be at least 5 characters");
+      throw new IllegalArgumentException("Question text must be at least 5 characters");
     }
+
     if (text.length() > 500) {
-      throw new IllegalArgumentException(
-          "Question text cannot exceed 500 characters");
+      throw new IllegalArgumentException("Question text cannot exceed 500 characters");
     }
   }
 }

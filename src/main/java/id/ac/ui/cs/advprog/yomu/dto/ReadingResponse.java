@@ -11,4 +11,5 @@ public class ReadingResponse {
   private String content;
   private String category;
   private String difficultyLevel;
+  private Integer quizDurationMinutes;
 }

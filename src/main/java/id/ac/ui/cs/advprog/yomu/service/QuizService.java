@@ -1,9 +1,13 @@
 package id.ac.ui.cs.advprog.yomu.service;
 
 import id.ac.ui.cs.advprog.yomu.dto.QuizCompletedEvent;
+import id.ac.ui.cs.advprog.yomu.dto.QuizResultResponse;
+import id.ac.ui.cs.advprog.yomu.dto.ScoreUpdateRequest;
+import id.ac.ui.cs.advprog.yomu.entity.Question;
 import id.ac.ui.cs.advprog.yomu.entity.Reading;
 import id.ac.ui.cs.advprog.yomu.entity.UserProgress;
 import id.ac.ui.cs.advprog.yomu.event.QuizCompletionEvent;
+import id.ac.ui.cs.advprog.yomu.repository.QuizRepository;
 import id.ac.ui.cs.advprog.yomu.repository.ReadingRepository;
 import id.ac.ui.cs.advprog.yomu.repository.UserProgressRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -25,15 +32,19 @@ public class QuizService {
   private final UserProgressRepository userProgressRepository;
   private final ApplicationEventPublisher eventPublisher;
   private final RestTemplate restTemplate;
+  private final QuizRepository quizRepository;
 
-  @Value("${achievement.service.url:http://be-achievement:8081}")
+  @Value("${achievement.service.url:http://be-achievement:8083}")
   private String achievementServiceUrl;
+
+  @Value("${league.service.url:http://be-liga:8084}")
+  private String leagueServiceUrl;
 
   private String validateId(String id) {
     if (id == null) {
       throw new IllegalArgumentException("Invalid ID format");
     }
-    String trimmed = id.trim(); // trim dulu
+    String trimmed = id.trim();
     if (!trimmed.matches("[a-zA-Z0-9\\-]+")) {
       throw new IllegalArgumentException("Invalid ID format");
     }
@@ -53,7 +64,19 @@ public class QuizService {
   }
 
   @Transactional
-  public void completeQuiz(String userId, String readingId, int score, double accuracy) {
+  public void completeQuiz(String userId, String readingId, int score, int accuracy) {
+    completeQuiz(userId, readingId, score, accuracy, Map.of());
+  }
+
+  @Transactional
+  public void completeQuiz(String userId, String readingId, int score, int accuracy,
+                           Map<String, String> userAnswers) {
+    completeQuiz(userId, readingId, score, accuracy, userAnswers, 0);
+  }
+
+  @Transactional
+  public void completeQuiz(String userId, String readingId, int score, int accuracy,
+                           Map<String, String> userAnswers, int timeTakenSeconds) {
     String cleanUserId = validateId(userId);
     String cleanReadingId = validateId(readingId);
 
@@ -61,33 +84,137 @@ public class QuizService {
       throw new IllegalStateException("This quiz has been completed");
     }
 
-    // Simpan user progress
     UserProgress progress = new UserProgress();
     progress.setUserId(cleanUserId);
     progress.setReadingId(cleanReadingId);
     progress.setCompletedAt(LocalDateTime.now());
     progress.setScore(score);
     progress.setAccuracy(accuracy);
+    progress.setTimeTakenSeconds(Math.max(0, timeTakenSeconds));
+    progress.setUserAnswers(userAnswers != null ? userAnswers : Map.of());
 
     userProgressRepository.save(progress);
 
-    // Publish event dengan data yang sudah divalidasi
+    Reading reading = readingRepository.findById(cleanReadingId)
+        .orElseThrow(() -> new IllegalArgumentException("Reading not found"));
+
     eventPublisher.publishEvent(
         new QuizCompletionEvent(this, progress.getUserId(), progress.getReadingId()));
 
-    // Kirim event ke be-achievement lewat HTTP POST
-    notifyAchievementService(cleanUserId, score, accuracy);
+    notifyAchievementService(cleanUserId, reading, score, accuracy);
+    notifyLeagueService(cleanUserId, score, accuracy);
   }
 
-  private void notifyAchievementService(String userId, int score, double accuracy) {
+  public QuizResultResponse getQuizResult(String userId, String readingId) {
+    String cleanUserId = validateId(userId);
+    String cleanReadingId = validateId(readingId);
+
+    UserProgress progress = userProgressRepository
+        .findByUserIdAndReadingId(cleanUserId, cleanReadingId)
+        .orElseThrow(() -> new IllegalArgumentException(
+            "Quiz result not found. User has not completed this quiz."));
+
+    List<Question> questions = quizRepository.findByReadingId(cleanReadingId);
+    Map<String, String> userAnswers = progress.getUserAnswers();
+
+    List<QuizResultResponse.QuestionResultDetail> details = questions.stream()
+        .map(question -> {
+          String userAnswer = userAnswers.getOrDefault(question.getId(), null);
+
+          String rawCorrectAnswer = question.getCorrectAnswer();
+          String resolvedCorrectAnswer = resolveCorrectAnswerText(question, rawCorrectAnswer);
+
+          boolean isCorrect = isAnswerCorrect(userAnswer, resolvedCorrectAnswer, question);
+
+          return QuizResultResponse.QuestionResultDetail.builder()
+              .questionId(question.getId())
+              .questionText(question.getText())
+              .questionType(question.getQuestionType())
+              .options(question.getOptions())
+              .userAnswer(userAnswer)
+              .correctAnswer(resolvedCorrectAnswer) // Frontend akan menerima teks opsi utuh
+              .isCorrect(isCorrect)
+              .build();
+        })
+        .collect(Collectors.toList());
+
+    return QuizResultResponse.builder()
+        .readingId(cleanReadingId)
+        .score(progress.getScore())
+        .accuracy(progress.getAccuracy())
+        .totalQuestions(questions.size())
+        .correctAnswers((int) details.stream().filter(QuizResultResponse
+            .QuestionResultDetail::isCorrect).count())
+        .timeTakenSeconds(progress.getTimeTakenSeconds() != null
+            ? progress.getTimeTakenSeconds()
+            : 0)
+        .completedAt(progress.getCompletedAt())
+        .questionDetails(details)
+        .build();
+  }
+
+  public boolean isAnswerCorrect(String userAnswer, String correctAnswer, Question question) {
+    if (userAnswer == null || correctAnswer == null) {
+      return false;
+    }
+
+    if ("MULTIPLE_CHOICE".equalsIgnoreCase(question.getQuestionType())
+        && correctAnswer.trim().length() == 1) {
+      String resolvedCorrect = resolveCorrectAnswerText(question, correctAnswer);
+      return userAnswer.trim().equalsIgnoreCase(resolvedCorrect.trim());
+    }
+
+    return userAnswer.trim().equalsIgnoreCase(correctAnswer.trim());
+  }
+
+  private void notifyAchievementService(String userId, Reading reading,
+                                        int score, int accuracy) {
     try {
       String url = achievementServiceUrl + "/api/events/quiz-completed";
-      QuizCompletedEvent event = new QuizCompletedEvent(userId, score, accuracy);
+      QuizCompletedEvent event = new QuizCompletedEvent(
+          userId, 
+          reading.getId(), 
+          reading.getCategory(), 
+          reading.getDifficultyLevel(), 
+          score, 
+          accuracy
+      );
       restTemplate.postForObject(url, event, String.class);
       log.info("Successfully notified be-achievement for user {}", userId);
     } catch (Exception e) {
-      // Jangan gagalkan transaksi utama jika be-achievement tidak tersedia
       log.error("Failed to notify be-achievement service for user {}: {}", userId, e.getMessage());
     }
+  }
+
+  private void notifyLeagueService(String userId, int score, int accuracy) {
+    try {
+      String url = leagueServiceUrl + "/api/internal/score-update";
+      ScoreUpdateRequest request = ScoreUpdateRequest.builder()
+          .userId(userId)
+          .score(score)
+          .accuracy(accuracy)
+          .isQuiz(true)
+          .build();
+      restTemplate.postForObject(url, request, Void.class);
+      log.info("Successfully notified be-liga for user {}", userId);
+    } catch (Exception e) {
+      log.error("Failed to notify be-liga service for user {}: {}", userId, e.getMessage());
+    }
+  }
+
+  private String resolveCorrectAnswerText(Question question, String correctAnswer) {
+    if (question.getOptions() == null || question.getOptions().isEmpty()) {
+      return correctAnswer;
+    }
+
+    String cleanAnswer = correctAnswer.trim().toUpperCase();
+    if (cleanAnswer.matches("[A-Z]")) {
+      int index = cleanAnswer.charAt(0) - 'A';
+      if (index < question.getOptions().size()) {
+        return question.getOptions().get(index);
+      }
+    }
+
+    return correctAnswer;
   }
 }
