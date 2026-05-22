@@ -210,7 +210,7 @@ public class QuizService {
     String cleanAnswer = correctAnswer.trim().toUpperCase();
     if (cleanAnswer.matches("[A-Z]")) {
       int index = cleanAnswer.charAt(0) - 'A';
-      if (index >= 0 && index < question.getOptions().size()) {
+      if (index < question.getOptions().size()) {
         return question.getOptions().get(index);
       }
     }

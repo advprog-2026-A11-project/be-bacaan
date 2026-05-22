@@ -106,6 +106,21 @@ class StudentQuizControllerTest {
   }
 
   @Test
+  void getQuizQuestionWhenJwtMissing_shouldReturnBadRequest() throws Exception {
+    mockMvc.perform(get("/api/student/quiz/readings/{readingId}/questions", "r1"))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string("Invalid user id format"));
+  }
+
+  @Test
+  void getQuizQuestionWhenJwtSubjectMissing_shouldReturnBadRequest() throws Exception {
+    mockMvc.perform(get("/api/student/quiz/readings/{readingId}/questions", "r1")
+            .requestAttr("jwt", jwtWithoutSubject()))
+        .andExpect(status().isBadRequest())
+        .andExpect(content().string("Invalid user id format"));
+  }
+
+  @Test
   void submitQuizTest() throws Exception {
     Map<String, String> answers = new HashMap<>();
     answers.put("q1", "A");
@@ -265,6 +280,13 @@ class StudentQuizControllerTest {
     return Jwt.withTokenValue("token")
         .header("alg", "none")
         .subject(userId)
+        .build();
+  }
+
+  private Jwt jwtWithoutSubject() {
+    return Jwt.withTokenValue("token")
+        .header("alg", "none")
+        .claim("role", "authenticated")
         .build();
   }
 

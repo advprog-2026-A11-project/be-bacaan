@@ -181,6 +181,29 @@ public class AdminQuizControllerTest {
   }
 
   @Test
+  void testUpdateQuestionWhenQuestionBelongsToOtherReading() throws Exception {
+    Reading otherReading = new Reading();
+    otherReading.setId("other-reading");
+    question.setReading(otherReading);
+
+    QuizQuestionRequest updateRequest = new QuizQuestionRequest();
+    updateRequest.setText("Is this the updated question?");
+    updateRequest.setQuestionType("MULTIPLE_CHOICE");
+    updateRequest.setOptions(List.of("A", "B"));
+    updateRequest.setCorrectAnswer("A");
+
+    when(adminQuizService.getQuestion(questionId)).thenReturn(question);
+
+    mockMvc.perform(put("/api/admin/readings/{readingId}/questions/{questionId}",
+        readingId, questionId)
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(updateRequest)))
+        .andExpect(status().isBadRequest());
+
+    verify(adminQuizService, never()).updateQuestion(anyString(), any());
+  }
+
+  @Test
   void testDeleteQuestionWhenQuestionBelongsToReading() throws Exception {
     when(adminQuizService.getQuestion(questionId)).thenReturn(question);
     doNothing().when(adminQuizService).deleteQuestion(questionId);

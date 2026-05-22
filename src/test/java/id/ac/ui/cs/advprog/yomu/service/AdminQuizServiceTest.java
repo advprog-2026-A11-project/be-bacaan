@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -214,6 +215,14 @@ class AdminQuizServiceTest {
 
     IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
         () -> service.updateQuestion(questionId, request));
+
+    assertEquals("Question text cannot be empty", exception.getMessage());
+  }
+
+  @Test
+  void validateQuestionText_whenTextNull_shouldThrowException() {
+    IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        () -> ReflectionTestUtils.invokeMethod(service, "validateQuestionText", (String) null));
 
     assertEquals("Question text cannot be empty", exception.getMessage());
   }

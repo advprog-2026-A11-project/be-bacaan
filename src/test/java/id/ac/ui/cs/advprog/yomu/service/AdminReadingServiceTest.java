@@ -60,6 +60,23 @@ class AdminReadingServiceTest {
   }
 
   @Test
+  void testCreateReadingWithCustomQuizDuration() {
+    final ReadingRequest dto = new ReadingRequest();
+    dto.setTitle("Test Title");
+    dto.setContent("Test Content");
+    dto.setCategory("Science");
+    dto.setDifficultyLevel("Medium");
+    dto.setQuizDurationMinutes(15);
+
+    when(readingRepository.save(any(Reading.class))).thenAnswer(invocation -> invocation
+        .getArgument(0));
+
+    Reading result = adminService.createReading(dto);
+
+    assertEquals(15, result.getQuizDurationMinutes());
+  }
+
+  @Test
   void testFindAll() {
     final Reading r1 = new Reading();
     r1.setTitle("R1");
@@ -111,6 +128,25 @@ class AdminReadingServiceTest {
   }
 
   @Test
+  void testUpdateReadingWithInvalidQuizDurationUsesDefault() {
+    final String id = "123";
+    final Reading existing = new Reading();
+
+    final ReadingRequest dto = new ReadingRequest();
+    dto.setTitle("New Title");
+    dto.setContent("New Content");
+    dto.setCategory("Math");
+    dto.setDifficultyLevel("Hard");
+    dto.setQuizDurationMinutes(0);
+
+    when(readingRepository.findById(id)).thenReturn(Optional.of(existing));
+
+    adminService.updateReading(id, dto);
+
+    assertEquals(10, existing.getQuizDurationMinutes());
+  }
+
+  @Test
   void testUpdateReadingNotFound() {
     final String id = "not-exist";
     final ReadingRequest dto = new ReadingRequest();
@@ -131,5 +167,16 @@ class AdminReadingServiceTest {
 
     adminService.getById(id);
     verify(readingRepository, times(1)).findById(id);
+  }
+
+  @Test
+  void testGetByIdWhenReadingNotFoundShouldThrowException() {
+    String id = "missing";
+    when(readingRepository.findById(id)).thenReturn(Optional.empty());
+
+    RuntimeException exception = assertThrows(RuntimeException.class,
+        () -> adminService.getById(id));
+
+    assertEquals("Reading id is not found: missing", exception.getMessage());
   }
 }
