@@ -5,7 +5,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-@SpringBootTest
+@SpringBootTest(properties = "app.security.enabled=false")
 class YomuApplicationTests {
 
   @Test
@@ -14,9 +14,9 @@ class YomuApplicationTests {
 
   @Test
   void runMain() {
-    // use available port so that it won't conflict with port 8080
-    // (if we use port 8080 to run main program)
     System.setProperty("server.port", "0");
+    System.setProperty("app.security.enabled", "false");
+
     assertDoesNotThrow(() ->
         YomuApplication.main(new String[]{}));
   }
