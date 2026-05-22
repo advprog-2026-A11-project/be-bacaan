@@ -92,11 +92,11 @@ public class StudentReadingServiceTest {
   void testGetUserStatsWithCompleteReadingsReturnCorrectStats() {
     UserProgress student1 = new UserProgress();
     student1.setUserId("student-1");
-    student1.setAccuracy(80.0);
+    student1.setAccuracy(80);
 
     UserProgress student2 = new UserProgress();
     student2.setUserId("student-2");
-    student2.setAccuracy(70.0);
+    student2.setAccuracy(70);
 
     when(userProgressRepository.findByUserId("student-1"))
         .thenReturn(List.of(student1, student2));

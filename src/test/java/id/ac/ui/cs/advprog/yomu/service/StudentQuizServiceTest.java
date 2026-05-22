@@ -73,7 +73,7 @@ class StudentQuizServiceTest {
 
   @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
   @Test
-  void submitQuiz_shouldReturnCorrectResult() {
+  void submitQuizShouldReturnCorrectResult() {
     Question q1 = new Question();
     q1.setId("q1");
     q1.setCorrectAnswer("A");
@@ -106,14 +106,14 @@ class StudentQuizServiceTest {
     QuizSubmitResponse response = studentQuizService.submitQuiz(userId, readingId, request);
 
     assertEquals(100, response.getScore());
-    assertEquals(1.0, response.getAccuracy());
+    assertEquals(100, response.getAccuracy());
     assertEquals(2, response.getTotalQuestions());
     assertEquals(2, response.getCorrectAnswers());
     assertEquals(120, response.getTimeTaken());
 
     assertTrue(response.getQuestionResults().get("q1"));
     assertTrue(response.getQuestionResults().get("q2"));
-    verify(quizService).completeQuiz(userId, readingId, 100, 1.0, answers);
+    verify(quizService).completeQuiz(userId, readingId, 100, 100, answers);
   }
 
   @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
@@ -151,12 +151,12 @@ class StudentQuizServiceTest {
     QuizSubmitResponse response = studentQuizService.submitQuiz(userId, readingId, request);
 
     assertEquals(50, response.getScore());
-    assertEquals(0.5, response.getAccuracy());
+    assertEquals(50, response.getAccuracy());
     assertEquals(1, response.getCorrectAnswers());
 
     assertTrue(response.getQuestionResults().get("q1"));
     assertFalse(response.getQuestionResults().get("q2"));
-    verify(quizService).completeQuiz(userId, readingId, 50, 0.5, answers);
+    verify(quizService).completeQuiz(userId, readingId, 50, 50, answers);
   }
 
   @Test
@@ -313,7 +313,7 @@ class StudentQuizServiceTest {
   }
 
   @Test
-  void testIsAnswerCorrect_reflection_nullHandling() throws Exception {
+  void testIsAnswerCorrectReflectionNullHandling() throws Exception {
     StudentQuizService service = new StudentQuizService(
         quizRepository,
         userProgressRepository,

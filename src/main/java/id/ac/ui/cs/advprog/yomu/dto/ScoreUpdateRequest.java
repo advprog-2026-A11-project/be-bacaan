@@ -14,8 +14,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ScoreUpdateRequest {
   private String userId;
   private int score;
-  private double accuracy;
+  private int accuracy;
 
-  @JsonProperty("isAQuiz")
-  private boolean isAquiz;
+  @JsonProperty("isQuiz")
+  private boolean isQuiz;
 }

@@ -58,7 +58,7 @@ public class StudentQuizService {
 
     int totalQuestions = questions.size();
     int score = (int) Math.round((double) correctCount / totalQuestions * 100);
-    double accuracy = ((double) correctCount / totalQuestions) * 100.0;
+    int accuracy = (int) Math.round((double) correctCount / totalQuestions * 100);
 
     quizService.completeQuiz(userId, readingId, score, accuracy, studentAnswers);
 

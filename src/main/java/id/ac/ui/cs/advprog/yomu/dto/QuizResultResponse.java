@@ -14,7 +14,7 @@ public class QuizResultResponse {
 
   private String readingId;
   private int score;
-  private double accuracy;
+  private int accuracy;
   private int totalQuestions;
   private int correctAnswers;
   private LocalDateTime completedAt;

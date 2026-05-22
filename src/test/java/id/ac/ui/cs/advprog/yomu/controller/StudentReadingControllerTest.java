@@ -93,13 +93,13 @@ class StudentReadingControllerTest {
 
     CompletedQuizRequest request = new CompletedQuizRequest();
     request.setScore(80);
-    request.setAccuracy(0.9);
+    request.setAccuracy(90);
 
     ResponseEntity<String> response = readingController.completeQuiz(userId, readingId, request);
 
     assertEquals(200, response.getStatusCodeValue());
     assertEquals("Thank you for completing the quiz!", response.getBody());
-    verify(quizService, times(1)).completeQuiz(userId, readingId, 80, 0.9);
+    verify(quizService, times(1)).completeQuiz(userId, readingId, 80, 90);
   }
 
   @Test
@@ -109,7 +109,7 @@ class StudentReadingControllerTest {
 
     CompletedQuizRequest request = new CompletedQuizRequest();
     request.setScore(80);
-    request.setAccuracy(0.9);
+    request.setAccuracy(90);
 
     ResponseEntity<String> response = readingController
         .completeQuiz(invalidUserId, readingId, request);
@@ -117,7 +117,7 @@ class StudentReadingControllerTest {
     assertEquals(400, response.getStatusCodeValue());
     assertEquals("Invalid User ID format", response.getBody());
     verify(quizService, never())
-        .completeQuiz(anyString(), anyString(), anyInt(), anyDouble());
+        .completeQuiz(anyString(), anyString(), anyInt(), anyInt());
   }
 
   @Test
@@ -126,7 +126,7 @@ class StudentReadingControllerTest {
 
     CompletedQuizRequest request = new CompletedQuizRequest();
     request.setScore(80);
-    request.setAccuracy(0.9);
+    request.setAccuracy(90);
 
     ResponseEntity<String> response = readingController
         .completeQuiz(null, readingId, request);
@@ -134,7 +134,7 @@ class StudentReadingControllerTest {
     assertEquals(400, response.getStatusCodeValue());
     assertEquals("Invalid User ID format", response.getBody());
     verify(quizService, never())
-        .completeQuiz(anyString(), anyString(), anyInt(), anyDouble());
+        .completeQuiz(anyString(), anyString(), anyInt(), anyInt());
   }
 
   @Test
@@ -144,7 +144,7 @@ class StudentReadingControllerTest {
 
     CompletedQuizRequest request = new CompletedQuizRequest();
     request.setScore(80);
-    request.setAccuracy(0.9);
+    request.setAccuracy(90);
 
     ResponseEntity<String> response = readingController
         .completeQuiz(userId, invalidReadingId, request);
@@ -152,7 +152,7 @@ class StudentReadingControllerTest {
     assertEquals(400, response.getStatusCodeValue());
     assertEquals("Invalid Reading ID format", response.getBody());
     verify(quizService, never())
-        .completeQuiz(anyString(), anyString(), anyInt(), anyDouble());
+        .completeQuiz(anyString(), anyString(), anyInt(), anyInt());
   }
 
   @Test
@@ -161,7 +161,7 @@ class StudentReadingControllerTest {
 
     CompletedQuizRequest request = new CompletedQuizRequest();
     request.setScore(80);
-    request.setAccuracy(0.9);
+    request.setAccuracy(90);
 
     ResponseEntity<String> response = readingController
         .completeQuiz(userId, null, request);
@@ -169,7 +169,7 @@ class StudentReadingControllerTest {
     assertEquals(400, response.getStatusCodeValue());
     assertEquals("Invalid Reading ID format", response.getBody());
     verify(quizService, never())
-        .completeQuiz(anyString(), anyString(), anyInt(), anyDouble());
+        .completeQuiz(anyString(), anyString(), anyInt(), anyInt());
   }
 
   @Test
@@ -179,11 +179,11 @@ class StudentReadingControllerTest {
 
     CompletedQuizRequest request = new CompletedQuizRequest();
     request.setScore(80);
-    request.setAccuracy(0.9);
+    request.setAccuracy(90);
 
     doThrow(new IllegalStateException("This quiz has been completed"))
         .when(quizService)
-        .completeQuiz(userId, readingId, 80, 0.9);
+        .completeQuiz(userId, readingId, 80, 90);
 
     IllegalStateException ex = assertThrows(IllegalStateException.class,
         () -> readingController.completeQuiz(userId, readingId, request));

@@ -11,12 +11,12 @@ public class QuizCompletedEvent {
   private String category;
   private String difficultyLevel;
   private int score;
-  private double accuracy;
+  private int accuracy;
 
   public QuizCompletedEvent() {}
 
   public QuizCompletedEvent(String userId, String readingId, String category,
-                            String difficultyLevel, int score, double accuracy) {
+                            String difficultyLevel, int score, int accuracy) {
     this.eventId = UUID.randomUUID().toString();
     this.userId = userId;
     this.readingId = readingId;

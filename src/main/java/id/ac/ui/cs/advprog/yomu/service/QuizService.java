@@ -64,12 +64,12 @@ public class QuizService {
   }
 
   @Transactional
-  public void completeQuiz(String userId, String readingId, int score, double accuracy) {
+  public void completeQuiz(String userId, String readingId, int score, int accuracy) {
     completeQuiz(userId, readingId, score, accuracy, Map.of());
   }
 
   @Transactional
-  public void completeQuiz(String userId, String readingId, int score, double accuracy,
+  public void completeQuiz(String userId, String readingId, int score, int accuracy,
                            Map<String, String> userAnswers) {
     String cleanUserId = validateId(userId);
     String cleanReadingId = validateId(readingId);
@@ -158,7 +158,7 @@ public class QuizService {
   }
 
   private void notifyAchievementService(String userId, Reading reading,
-                                        int score, double accuracy) {
+                                        int score, int accuracy) {
     try {
       String url = achievementServiceUrl + "/api/events/quiz-completed";
       QuizCompletedEvent event = new QuizCompletedEvent(
@@ -176,14 +176,14 @@ public class QuizService {
     }
   }
 
-  private void notifyLeagueService(String userId, int score, double accuracy) {
+  private void notifyLeagueService(String userId, int score, int accuracy) {
     try {
       String url = leagueServiceUrl + "/api/internal/score-update";
       ScoreUpdateRequest request = ScoreUpdateRequest.builder()
           .userId(userId)
           .score(score)
           .accuracy(accuracy)
-          .isAquiz(true)
+          .isQuiz(true)
           .build();
       restTemplate.postForObject(url, request, Void.class);
       log.info("Successfully notified be-liga for user {}", userId);

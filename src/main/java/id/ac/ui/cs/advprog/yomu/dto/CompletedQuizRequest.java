@@ -7,6 +7,6 @@ import lombok.Setter;
 @Getter
 public class CompletedQuizRequest {
   private int score;
-  private double accuracy;
+  private int accuracy;
 
 }

@@ -136,7 +136,7 @@ class QuizServiceTest {
     reading.setCategory("NEWS");
     reading.setDifficultyLevel("BEGINNER");
     int score = 80;
-    double accuracy = 0.9;
+    int accuracy = 90;
 
     when(readingRepository.findById(readingId)).thenReturn(Optional.of(reading));
 
@@ -182,7 +182,7 @@ class QuizServiceTest {
 
     when(readingRepository.findById(readingId)).thenReturn(Optional.of(reading));
 
-    quizService.completeQuiz(userId, readingId, 80, 0.8, answers);
+    quizService.completeQuiz(userId, readingId, 80, 80, answers);
 
     ArgumentCaptor<UserProgress> captor = ArgumentCaptor.forClass(UserProgress.class);
     verify(userProgressRepository).save(captor.capture());
@@ -197,7 +197,7 @@ class QuizServiceTest {
     String userId = "user123";
     String readingId = "reading-456";
     int score = 80;
-    double accuracy = 0.9;
+    int accuracy = 90;
 
     when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
         .thenReturn(true);
@@ -214,7 +214,7 @@ class QuizServiceTest {
   @Test
   void testCompleteQuizInvalidId() {
     int score = 80;
-    double accuracy = 0.9;
+    int accuracy = 90;
 
     assertThrows(IllegalArgumentException.class, () -> quizService
         .completeQuiz("user 123!", "reading-456", score, accuracy));
@@ -243,7 +243,7 @@ class QuizServiceTest {
     when(restTemplate.postForObject(anyString(), any(), eq(String.class)))
         .thenThrow(new RuntimeException("Achievement service down!"));
 
-    assertDoesNotThrow(() -> quizService.completeQuiz(userId, readingId, 80, 0.8));
+    assertDoesNotThrow(() -> quizService.completeQuiz(userId, readingId, 80, 80));
     verify(userProgressRepository, times(1)).save(any(UserProgress.class));
   }
 
@@ -273,7 +273,7 @@ class QuizServiceTest {
     progress.setUserId(userId);
     progress.setReadingId(readingId);
     progress.setScore(50);
-    progress.setAccuracy(0.5);
+    progress.setAccuracy(50);
     progress.setCompletedAt(LocalDateTime.now());
     progress.setUserAnswers(Map.of("q1", "Jakarta", "q2", "False"));
 
@@ -286,7 +286,7 @@ class QuizServiceTest {
 
     assertEquals(readingId, result.getReadingId());
     assertEquals(50, result.getScore());
-    assertEquals(0.5, result.getAccuracy());
+    assertEquals(50, result.getAccuracy());
     assertEquals(2, result.getTotalQuestions());
     assertEquals(1, result.getCorrectAnswers());
     assertEquals(2, result.getQuestionDetails().size());
@@ -342,7 +342,7 @@ class QuizServiceTest {
     progress.setUserId(userId);
     progress.setReadingId(readingId);
     progress.setScore(0);
-    progress.setAccuracy(0.0);
+    progress.setAccuracy(0);
     progress.setCompletedAt(LocalDateTime.now());
     // user tidak menjawab q1
     progress.setUserAnswers(Map.of());
@@ -386,7 +386,7 @@ class QuizServiceTest {
     progress.setUserId("user123");
     progress.setReadingId("reading456");
     progress.setScore(100);
-    progress.setAccuracy(1.0);
+    progress.setAccuracy(100);
     progress.setCompletedAt(LocalDateTime.now());
 
     progress.setUserAnswers(Map.of("q1", "Bandung"));
@@ -433,7 +433,7 @@ class QuizServiceTest {
     progress.setUserId(userId);
     progress.setReadingId(readingId);
     progress.setScore(0);
-    progress.setAccuracy(0.0);
+    progress.setAccuracy(0);
     progress.setCompletedAt(LocalDateTime.now());
     progress.setUserAnswers(Map.of("q1", "Z"));
 
@@ -468,7 +468,7 @@ class QuizServiceTest {
     progress.setUserId("user123");
     progress.setReadingId("reading456");
     progress.setScore(100);
-    progress.setAccuracy(1.0);
+    progress.setAccuracy(100);
     progress.setCompletedAt(LocalDateTime.now());
 
     progress.setUserAnswers(Map.of("q1", "Java"));

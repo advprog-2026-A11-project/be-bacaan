@@ -38,7 +38,7 @@ public class UserProgress {
   private int score;
 
   @Column(nullable = false)
-  private double accuracy;
+  private int accuracy;
 
   @ElementCollection
   @CollectionTable(

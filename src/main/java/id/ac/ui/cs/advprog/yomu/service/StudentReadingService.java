@@ -33,7 +33,7 @@ public class StudentReadingService {
 
     long totalCompleted = progresses.size();
     double avgAccuracy = progresses.stream()
-        .mapToDouble(UserProgress::getAccuracy)
+        .mapToInt(UserProgress::getAccuracy)
         .average()
         .orElse(0.0);
 
