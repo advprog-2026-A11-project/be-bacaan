@@ -30,7 +30,7 @@ public class StudentReadingController {
       @AuthenticationPrincipal Jwt jwt,
       @PathVariable String readingId) {
 
-    String userId = jwt.getSubject();
+    String userId = getAuthenticatedUserId(jwt);
 
     if (!isValidId(readingId)) {
       throw new IllegalArgumentException("Invalid Reading ID format");
@@ -44,6 +44,7 @@ public class StudentReadingController {
         .content(reading.getContent())
         .category(reading.getCategory())
         .difficultyLevel(reading.getDifficultyLevel())
+        .quizDurationMinutes(reading.getQuizDurationMinutes())
         .build();
 
     return ResponseEntity.ok(response);
@@ -59,7 +60,7 @@ public class StudentReadingController {
       @PathVariable String readingId,
       @RequestBody CompletedQuizRequest request) {
 
-    String userId = jwt.getSubject();
+    String userId = getAuthenticatedUserId(jwt);
 
     if (!isValidId(readingId)) {
       return ResponseEntity.badRequest().body("Invalid Reading ID format");
@@ -79,7 +80,7 @@ public class StudentReadingController {
   public ResponseEntity<UserStatsResponse> getUserStats(
       @AuthenticationPrincipal Jwt jwt) {
 
-    String userId = jwt.getSubject();
+    String userId = getAuthenticatedUserId(jwt);
     return ResponseEntity.ok(studentReadingService.getUserStats(userId));
   }
 
@@ -93,5 +94,12 @@ public class StudentReadingController {
 
   private boolean isValidId(String id) {
     return id != null && id.matches("^[a-zA-Z0-9-]+$");
+  }
+
+  private String getAuthenticatedUserId(Jwt jwt) {
+    if (jwt == null || !isValidId(jwt.getSubject())) {
+      throw new IllegalArgumentException("Invalid User ID format");
+    }
+    return jwt.getSubject();
   }
 }

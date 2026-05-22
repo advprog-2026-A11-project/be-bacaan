@@ -71,6 +71,12 @@ public class QuizService {
   @Transactional
   public void completeQuiz(String userId, String readingId, int score, int accuracy,
                            Map<String, String> userAnswers) {
+    completeQuiz(userId, readingId, score, accuracy, userAnswers, 0);
+  }
+
+  @Transactional
+  public void completeQuiz(String userId, String readingId, int score, int accuracy,
+                           Map<String, String> userAnswers, int timeTakenSeconds) {
     String cleanUserId = validateId(userId);
     String cleanReadingId = validateId(readingId);
 
@@ -84,6 +90,7 @@ public class QuizService {
     progress.setCompletedAt(LocalDateTime.now());
     progress.setScore(score);
     progress.setAccuracy(accuracy);
+    progress.setTimeTakenSeconds(Math.max(0, timeTakenSeconds));
     progress.setUserAnswers(userAnswers != null ? userAnswers : Map.of());
 
     userProgressRepository.save(progress);
@@ -138,6 +145,9 @@ public class QuizService {
         .totalQuestions(questions.size())
         .correctAnswers((int) details.stream().filter(QuizResultResponse
             .QuestionResultDetail::isCorrect).count())
+        .timeTakenSeconds(progress.getTimeTakenSeconds() != null
+            ? progress.getTimeTakenSeconds()
+            : 0)
         .completedAt(progress.getCompletedAt())
         .questionDetails(details)
         .build();

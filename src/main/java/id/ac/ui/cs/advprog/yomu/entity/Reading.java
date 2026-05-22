@@ -30,6 +30,9 @@ public class Reading {
   @Column(nullable = false)
   private String difficultyLevel;
 
+  @Column
+  private Integer quizDurationMinutes = 10;
+
   // Relasi ke Question
   @OneToMany(mappedBy = "reading", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Question> questions = new ArrayList<>();

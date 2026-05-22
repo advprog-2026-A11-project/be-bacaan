@@ -14,9 +14,16 @@ import org.junit.jupiter.api.Test;
 
 import org.mockito.*;
 
+import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.web.servlet.*;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.bind.support.WebDataBinderFactory;
+import org.springframework.web.context.request.NativeWebRequest;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.method.support.ModelAndViewContainer;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -48,6 +55,7 @@ class StudentQuizControllerTest {
 
     mockMvc = MockMvcBuilders.standaloneSetup(controller)
         .setControllerAdvice(new GlobalExceptionHandler())
+        .setCustomArgumentResolvers(new TestJwtArgumentResolver())
         .build();
   }
 
@@ -70,7 +78,7 @@ class StudentQuizControllerTest {
     when(studentQuizService.getQuizQuestion(userId, readingId)).thenReturn(List.of(q1, q2));
 
     mockMvc.perform(get("/api/student/quiz/readings/{readingId}/questions",
-            readingId).header("userId", userId))
+            readingId).requestAttr("jwt", jwt(userId)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.length()").value(2))
 
@@ -91,7 +99,7 @@ class StudentQuizControllerTest {
 
     for (String invalidId : invalidUserIds) {
       mockMvc.perform(get("/api/student/quiz/readings/{readingId}/questions", "r1")
-              .header("userId", invalidId))
+              .requestAttr("jwt", jwt(invalidId)))
           .andExpect(status().isBadRequest())
           .andExpect(content().string("Invalid user id format"));
     }
@@ -128,7 +136,7 @@ class StudentQuizControllerTest {
         .thenReturn(response);
 
     mockMvc.perform(post("/api/student/quiz/readings/{readingId}/submit", readingId)
-            .header("userId", userId)
+            .requestAttr("jwt", jwt(userId))
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)))
         .andExpect(status().isOk())
@@ -152,7 +160,7 @@ class StudentQuizControllerTest {
 
     for (String invalidId : invalidUserIds) {
       mockMvc.perform(post("/api/student/quiz/readings/{readingId}/submit", "r1")
-              .header("userId", invalidId)
+              .requestAttr("jwt", jwt(invalidId))
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(request)))
           .andExpect(status().isBadRequest())
@@ -204,7 +212,7 @@ class StudentQuizControllerTest {
     when(quizService.getQuizResult(userId, readingId)).thenReturn(resultResponse);
 
     mockMvc.perform(get("/api/student/quiz/readings/{readingId}/result", readingId)
-            .header("userId", userId))
+            .requestAttr("jwt", jwt(userId)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.readingId").value(readingId))
         .andExpect(jsonPath("$.score").value(50))
@@ -232,7 +240,7 @@ class StudentQuizControllerTest {
 
     for (String invalidId : invalidUserIds) {
       mockMvc.perform(get("/api/student/quiz/readings/{readingId}/result", "r1")
-              .header("userId", invalidId))
+              .requestAttr("jwt", jwt(invalidId)))
           .andExpect(status().isBadRequest())
           .andExpect(content().string("Invalid user id format"));
     }
@@ -248,8 +256,31 @@ class StudentQuizControllerTest {
             "Quiz result not found. User has not completed this quiz."));
 
     mockMvc.perform(get("/api/student/quiz/readings/{readingId}/result", readingId)
-            .header("userId", userId))
+            .requestAttr("jwt", jwt(userId)))
         .andExpect(status().isBadRequest())
         .andExpect(content().string("Quiz result not found. User has not completed this quiz."));
+  }
+
+  private Jwt jwt(String userId) {
+    return Jwt.withTokenValue("token")
+        .header("alg", "none")
+        .subject(userId)
+        .build();
+  }
+
+  private static class TestJwtArgumentResolver implements HandlerMethodArgumentResolver {
+    @Override
+    public boolean supportsParameter(MethodParameter parameter) {
+      return parameter.hasParameterAnnotation(AuthenticationPrincipal.class)
+          && Jwt.class.isAssignableFrom(parameter.getParameterType());
+    }
+
+    @Override
+    public Object resolveArgument(MethodParameter parameter,
+                                  ModelAndViewContainer mavContainer,
+                                  NativeWebRequest webRequest,
+                                  WebDataBinderFactory binderFactory) {
+      return webRequest.getAttribute("jwt", NativeWebRequest.SCOPE_REQUEST);
+    }
   }
 }

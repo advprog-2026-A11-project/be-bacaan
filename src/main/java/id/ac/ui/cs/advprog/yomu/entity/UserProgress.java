@@ -40,6 +40,9 @@ public class UserProgress {
   @Column(nullable = false)
   private int accuracy;
 
+  @Column
+  private Integer timeTakenSeconds = 0;
+
   @ElementCollection
   @CollectionTable(
       name = "user_progress_answers",

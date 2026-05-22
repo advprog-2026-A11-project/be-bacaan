@@ -17,6 +17,7 @@ public class QuizResultResponse {
   private int accuracy;
   private int totalQuestions;
   private int correctAnswers;
+  private int timeTakenSeconds;
   private LocalDateTime completedAt;
   private List<QuestionResultDetail> questionDetails;
 

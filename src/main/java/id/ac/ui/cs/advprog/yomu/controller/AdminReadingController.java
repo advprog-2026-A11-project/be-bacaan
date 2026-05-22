@@ -39,6 +39,7 @@ public class AdminReadingController {
         .content(reading.getContent())
         .category(reading.getCategory())
         .difficultyLevel(reading.getDifficultyLevel())
+        .quizDurationMinutes(reading.getQuizDurationMinutes())
         .build();
 
     return ResponseEntity.ok(response);
@@ -81,6 +82,7 @@ public class AdminReadingController {
         .content(reading.getContent())
         .category(reading.getCategory())
         .difficultyLevel(reading.getDifficultyLevel())
+        .quizDurationMinutes(reading.getQuizDurationMinutes())
         .build();
 
     return ResponseEntity.ok(response);

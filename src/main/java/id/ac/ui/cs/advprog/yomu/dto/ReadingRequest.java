@@ -5,6 +5,7 @@ public class ReadingRequest {
   private String content;
   private String category;
   private String difficultyLevel;
+  private Integer quizDurationMinutes;
 
   // getter & setter
   public String getTitle() {
@@ -37,5 +38,13 @@ public class ReadingRequest {
 
   public void setDifficultyLevel(String difficultyLevel) {
     this.difficultyLevel = difficultyLevel;
+  }
+
+  public Integer getQuizDurationMinutes() {
+    return quizDurationMinutes;
+  }
+
+  public void setQuizDurationMinutes(Integer quizDurationMinutes) {
+    this.quizDurationMinutes = quizDurationMinutes;
   }
 }

@@ -113,7 +113,7 @@ class StudentQuizServiceTest {
 
     assertTrue(response.getQuestionResults().get("q1"));
     assertTrue(response.getQuestionResults().get("q2"));
-    verify(quizService).completeQuiz(userId, readingId, 100, 100, answers);
+    verify(quizService).completeQuiz(userId, readingId, 100, 100, answers, 120);
   }
 
   @SuppressWarnings("checkstyle:VariableDeclarationUsageDistance")
@@ -156,7 +156,7 @@ class StudentQuizServiceTest {
 
     assertTrue(response.getQuestionResults().get("q1"));
     assertFalse(response.getQuestionResults().get("q2"));
-    verify(quizService).completeQuiz(userId, readingId, 50, 50, answers);
+    verify(quizService).completeQuiz(userId, readingId, 50, 50, answers, 60);
   }
 
   @Test

@@ -60,7 +60,14 @@ public class StudentQuizService {
     int score = (int) Math.round((double) correctCount / totalQuestions * 100);
     int accuracy = (int) Math.round((double) correctCount / totalQuestions * 100);
 
-    quizService.completeQuiz(userId, readingId, score, accuracy, studentAnswers);
+    quizService.completeQuiz(
+        userId,
+        readingId,
+        score,
+        accuracy,
+        studentAnswers,
+        request.getTimeTakenSeconds()
+    );
 
     return QuizSubmitResponse.builder()
         .score(score)

@@ -153,6 +153,7 @@ class QuizServiceTest {
     assertEquals(readingId, saved.getReadingId());
     assertEquals(score, saved.getScore());
     assertEquals(accuracy, saved.getAccuracy());
+    assertEquals(0, saved.getTimeTakenSeconds());
     assertNotNull(saved.getCompletedAt());
 
     ArgumentCaptor<QuizCompletionEvent> eventCaptor = ArgumentCaptor
@@ -190,6 +191,29 @@ class QuizServiceTest {
     UserProgress saved = captor.getValue();
     assertEquals("A", saved.getUserAnswers().get("q1"));
     assertEquals("True", saved.getUserAnswers().get("q2"));
+  }
+
+  @Test
+  void testCompleteQuizWithTimeTakenSavesDuration() {
+    String userId = "user123";
+    String readingId = "reading-456";
+    Map<String, String> answers = Map.of("q1", "A");
+
+    when(userProgressRepository.existsByUserIdAndReadingId(userId, readingId))
+        .thenReturn(false);
+
+    Reading reading = new Reading();
+    reading.setId(readingId);
+    reading.setCategory("NEWS");
+    reading.setDifficultyLevel("BEGINNER");
+    when(readingRepository.findById(readingId)).thenReturn(Optional.of(reading));
+
+    quizService.completeQuiz(userId, readingId, 80, 80, answers, 95);
+
+    ArgumentCaptor<UserProgress> captor = ArgumentCaptor.forClass(UserProgress.class);
+    verify(userProgressRepository).save(captor.capture());
+
+    assertEquals(95, captor.getValue().getTimeTakenSeconds());
   }
 
   @Test
@@ -274,6 +298,7 @@ class QuizServiceTest {
     progress.setReadingId(readingId);
     progress.setScore(50);
     progress.setAccuracy(50);
+    progress.setTimeTakenSeconds(125);
     progress.setCompletedAt(LocalDateTime.now());
     progress.setUserAnswers(Map.of("q1", "Jakarta", "q2", "False"));
 
@@ -289,6 +314,7 @@ class QuizServiceTest {
     assertEquals(50, result.getAccuracy());
     assertEquals(2, result.getTotalQuestions());
     assertEquals(1, result.getCorrectAnswers());
+    assertEquals(125, result.getTimeTakenSeconds());
     assertEquals(2, result.getQuestionDetails().size());
 
     QuizResultResponse.QuestionResultDetail detail1 = result.getQuestionDetails().get(0);

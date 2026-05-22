@@ -30,7 +30,7 @@ public class StudentQuizController {
       @AuthenticationPrincipal Jwt jwt,
       @PathVariable String readingId) {
 
-    String userId = jwt.getSubject();
+    String userId = getAuthenticatedUserId(jwt);
 
     List<Question> questions = studentQuizService.getQuizQuestion(userId, readingId);
     List<QuizQuestionResponse> responses = questions.stream()
@@ -46,7 +46,7 @@ public class StudentQuizController {
       @PathVariable String readingId,
       @Valid @RequestBody QuizSubmitRequest request) {
 
-    String userId = jwt.getSubject();
+    String userId = getAuthenticatedUserId(jwt);
 
     QuizSubmitResponse response = studentQuizService.submitQuiz(userId, readingId, request);
     return ResponseEntity.ok(response);
@@ -61,7 +61,7 @@ public class StudentQuizController {
       @AuthenticationPrincipal Jwt jwt,
       @PathVariable String readingId) {
 
-    String userId = jwt.getSubject();
+    String userId = getAuthenticatedUserId(jwt);
 
     QuizResultResponse result = quizService.getQuizResult(userId, readingId);
     return ResponseEntity.ok(result);
@@ -75,5 +75,16 @@ public class StudentQuizController {
         .questionType(question.getQuestionType())
         .options(question.getOptions())
         .build();
+  }
+
+  private String getAuthenticatedUserId(Jwt jwt) {
+    if (jwt == null || !isValidId(jwt.getSubject())) {
+      throw new IllegalArgumentException("Invalid user id format");
+    }
+    return jwt.getSubject();
+  }
+
+  private boolean isValidId(String id) {
+    return id != null && id.matches("^[a-zA-Z0-9-]+$");
   }
 }
