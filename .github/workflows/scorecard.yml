@@ -17,7 +17,7 @@ on:
     branches: [ "main" ,"staging"]
 
 # Declare default permissions as read only.
-permissions: read-all
+permissions: read
 
 jobs:
   analysis:
