@@ -204,6 +204,40 @@ class StudentQuizControllerTest {
   }
 
   @Test
+  void submitQuizFallsBackToSubjectWhenYomuUserIdClaimIsBlank() throws Exception {
+    QuizSubmitRequest request = new QuizSubmitRequest();
+    request.setAnswers(Map.of("q1", "A"));
+    request.setTimeTakenSeconds(120);
+
+    QuizSubmitResponse response = QuizSubmitResponse.builder()
+        .score(100)
+        .accuracy(100)
+        .correctAnswers(1)
+        .totalQuestions(1)
+        .timeTaken(120)
+        .questionResults(Map.of("q1", true))
+        .build();
+
+    String subject = "user123";
+    String readingId = "reading1";
+
+    when(studentQuizService.submitQuiz(
+        eq(subject),
+        eq(readingId),
+        any(QuizSubmitRequest.class)))
+        .thenReturn(response);
+
+    mockMvc.perform(post("/api/student/quiz/readings/{readingId}/submit", readingId)
+            .requestAttr("jwt", jwt(subject, " "))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk());
+
+    verify(studentQuizService, times(1))
+        .submitQuiz(eq(subject), eq(readingId), any(QuizSubmitRequest.class));
+  }
+
+  @Test
   void submitQuiz_whenUserIdInvalidFormat_shouldReturnBadRequest() throws Exception {
     String[] invalidUserIds = {"invalid@user", "invalid user", "invalid_user", "", " "};
     QuizSubmitRequest request = new QuizSubmitRequest();
