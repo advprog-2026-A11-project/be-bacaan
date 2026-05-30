@@ -2,7 +2,7 @@
 FROM eclipse-temurin:21-jdk-jammy AS build
 WORKDIR /app
 COPY . .
-# Remove Windows line endings if present 
+# Remove Windows line endings if present
 RUN chmod +x ./gradlew
 RUN ./gradlew bootJar -x test
 

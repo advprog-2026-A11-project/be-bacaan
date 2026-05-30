@@ -81,6 +81,11 @@ public class SecurityConfig {
         .sessionManagement(session ->
             session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
+            // Endpoint monitoring untuk Prometheus/Grafana
+            .requestMatchers("/actuator/health/**").permitAll()
+            .requestMatchers("/actuator/prometheus").permitAll()
+            .requestMatchers("/actuator/metrics/**").permitAll()
+
             // Endpoint publik: daftar semua bacaan boleh diakses tanpa login
             .requestMatchers(HttpMethod.GET, "/api/student/readings").permitAll()
             .requestMatchers(HttpMethod.GET, "/api/student/readings/").permitAll()
