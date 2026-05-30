@@ -167,6 +167,43 @@ class StudentQuizControllerTest {
   }
 
   @Test
+  void submitQuizUsesYomuUserIdClaimWhenPresent() throws Exception {
+    QuizSubmitRequest request = new QuizSubmitRequest();
+    request.setAnswers(Map.of("q1", "A"));
+    request.setTimeTakenSeconds(120);
+
+    QuizSubmitResponse response = QuizSubmitResponse.builder()
+        .score(100)
+        .accuracy(100)
+        .correctAnswers(1)
+        .totalQuestions(1)
+        .timeTaken(120)
+        .questionResults(Map.of("q1", true))
+        .build();
+
+    String subject = "supabase-subject";
+    String yomuUserId = "550e8400-e29b-41d4-a716-446655440001";
+    String readingId = "reading1";
+
+    when(studentQuizService.submitQuiz(
+        eq(yomuUserId),
+        eq(readingId),
+        any(QuizSubmitRequest.class)))
+        .thenReturn(response);
+
+    mockMvc.perform(post("/api/student/quiz/readings/{readingId}/submit", readingId)
+            .requestAttr("jwt", jwt(subject, yomuUserId))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk());
+
+    verify(studentQuizService, times(1))
+        .submitQuiz(eq(yomuUserId), eq(readingId), any(QuizSubmitRequest.class));
+    verify(studentQuizService, never())
+        .submitQuiz(eq(subject), eq(readingId), any(QuizSubmitRequest.class));
+  }
+
+  @Test
   void submitQuiz_whenUserIdInvalidFormat_shouldReturnBadRequest() throws Exception {
     String[] invalidUserIds = {"invalid@user", "invalid user", "invalid_user", "", " "};
     QuizSubmitRequest request = new QuizSubmitRequest();
@@ -280,6 +317,14 @@ class StudentQuizControllerTest {
     return Jwt.withTokenValue("token")
         .header("alg", "none")
         .subject(userId)
+        .build();
+  }
+
+  private Jwt jwt(String subject, String yomuUserId) {
+    return Jwt.withTokenValue("token")
+        .header("alg", "none")
+        .subject(subject)
+        .claim("yomu_user_id", yomuUserId)
         .build();
   }
 
