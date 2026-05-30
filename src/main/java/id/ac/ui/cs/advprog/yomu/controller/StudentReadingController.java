@@ -97,9 +97,18 @@ public class StudentReadingController {
   }
 
   private String getAuthenticatedUserId(Jwt jwt) {
-    if (jwt == null || !isValidId(jwt.getSubject())) {
+    if (jwt == null) {
       throw new IllegalArgumentException("Invalid User ID format");
     }
-    return jwt.getSubject();
+
+    String yomuUserId = jwt.getClaimAsString("yomu_user_id");
+    String userId = yomuUserId != null && !yomuUserId.isBlank()
+        ? yomuUserId
+        : jwt.getSubject();
+
+    if (!isValidId(userId)) {
+      throw new IllegalArgumentException("Invalid User ID format");
+    }
+    return userId;
   }
 }

@@ -105,6 +105,24 @@ class StudentReadingControllerTest {
   }
 
   @Test
+  void testCompleteQuizUsesYomuUserIdClaimWhenPresent() {
+    String subject = "supabase-subject";
+    String yomuUserId = "550e8400-e29b-41d4-a716-446655440001";
+    String readingId = "reading456";
+
+    CompletedQuizRequest request = new CompletedQuizRequest();
+    request.setScore(80);
+    request.setAccuracy(90);
+
+    ResponseEntity<String> response = readingController
+        .completeQuiz(jwt(subject, yomuUserId), readingId, request);
+
+    assertEquals(200, response.getStatusCodeValue());
+    verify(quizService, times(1)).completeQuiz(yomuUserId, readingId, 80, 90);
+    verify(quizService, never()).completeQuiz(subject, readingId, 80, 90);
+  }
+
+  @Test
   void testCompleteQuizInvalidUserId() {
     String invalidUserId = "user 123!"; // ada spasi & simbol
     String readingId = "reading456";
@@ -278,5 +296,13 @@ class StudentReadingControllerTest {
       builder.subject(userId);
     }
     return builder.build();
+  }
+
+  private Jwt jwt(String subject, String yomuUserId) {
+    return Jwt.withTokenValue("token")
+        .header("alg", "none")
+        .subject(subject)
+        .claim("yomu_user_id", yomuUserId)
+        .build();
   }
 }
