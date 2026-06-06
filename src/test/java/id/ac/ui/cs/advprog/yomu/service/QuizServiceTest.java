@@ -447,6 +447,43 @@ class QuizServiceTest {
   }
 
   @Test
+  void testGetQuizResultWhenUserAnswersNullShouldUseEmptyAnswers() {
+    Question q1 = new Question();
+    q1.setId("q1");
+    q1.setText("Pertanyaan 1");
+    q1.setQuestionType("MULTIPLE_CHOICE");
+    q1.setOptions(List.of("A", "B", "C"));
+    q1.setCorrectAnswer("A");
+
+    String userId = "user123";
+    String readingId = "reading-456";
+
+    UserProgress progress = new UserProgress();
+    progress.setUserId(userId);
+    progress.setReadingId(readingId);
+    progress.setScore(0);
+    progress.setAccuracy(0);
+    progress.setCompletedAt(LocalDateTime.now());
+    progress.setUserAnswers(null);
+
+    when(userProgressRepository.findByUserIdAndReadingId(userId, readingId))
+        .thenReturn(Optional.of(progress));
+    when(quizRepository.findByReadingId(readingId))
+        .thenReturn(List.of(q1));
+
+    QuizResultResponse result = quizService.getQuizResult(" " + userId + " ",
+        " " + readingId + " ");
+
+    assertEquals(1, result.getTotalQuestions());
+    assertEquals(0, result.getCorrectAnswers());
+    assertNull(result.getQuestionDetails().get(0).getUserAnswer());
+    assertFalse(result.getQuestionDetails().get(0).isCorrect());
+
+    verify(userProgressRepository).findByUserIdAndReadingId(userId, readingId);
+    verify(quizRepository).findByReadingId(readingId);
+  }
+
+  @Test
   void testGetQuizResultWhenTimeTakenIsNullShouldReturnZero() {
     Question q1 = new Question();
     q1.setId("q1");

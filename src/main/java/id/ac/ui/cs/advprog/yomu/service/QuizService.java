@@ -34,10 +34,10 @@ public class QuizService {
   private final RestTemplate restTemplate;
   private final QuizRepository quizRepository;
 
-  @Value("${achievement.service.url:http://be-achievement:8083}")
+  @Value("${achievement.service.url:http://localhost:8083}")
   private String achievementServiceUrl;
 
-  @Value("${league.service.url:http://be-liga:8084}")
+  @Value("${league.service.url:http://localhost:8084}")
   private String leagueServiceUrl;
 
   private String validateId(String id) {
@@ -105,6 +105,7 @@ public class QuizService {
     notifyLeagueService(cleanUserId, score, accuracy);
   }
 
+  @Transactional(readOnly = true)
   public QuizResultResponse getQuizResult(String userId, String readingId) {
     String cleanUserId = validateId(userId);
     String cleanReadingId = validateId(readingId);
@@ -115,7 +116,9 @@ public class QuizService {
             "Quiz result not found. User has not completed this quiz."));
 
     List<Question> questions = quizRepository.findByReadingId(cleanReadingId);
-    Map<String, String> userAnswers = progress.getUserAnswers();
+    Map<String, String> userAnswers = progress.getUserAnswers() != null
+        ? progress.getUserAnswers()
+        : Map.of();
 
     List<QuizResultResponse.QuestionResultDetail> details = questions.stream()
         .map(question -> {
@@ -130,7 +133,7 @@ public class QuizService {
               .questionId(question.getId())
               .questionText(question.getText())
               .questionType(question.getQuestionType())
-              .options(question.getOptions())
+              .options(question.getOptions() != null ? question.getOptions() : List.of())
               .userAnswer(userAnswer)
               .correctAnswer(resolvedCorrectAnswer) // Frontend akan menerima teks opsi utuh
               .isCorrect(isCorrect)
