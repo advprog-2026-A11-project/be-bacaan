@@ -123,6 +123,22 @@ class StudentReadingControllerTest {
   }
 
   @Test
+  void testCompleteQuizFallsBackToSubjectWhenYomuUserIdClaimIsBlank() {
+    String subject = "user123";
+    String readingId = "reading456";
+
+    CompletedQuizRequest request = new CompletedQuizRequest();
+    request.setScore(80);
+    request.setAccuracy(90);
+
+    ResponseEntity<String> response = readingController
+        .completeQuiz(jwt(subject, " "), readingId, request);
+
+    assertEquals(200, response.getStatusCodeValue());
+    verify(quizService, times(1)).completeQuiz(subject, readingId, 80, 90);
+  }
+
+  @Test
   void testCompleteQuizInvalidUserId() {
     String invalidUserId = "user 123!"; // ada spasi & simbol
     String readingId = "reading456";
