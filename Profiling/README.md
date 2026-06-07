@@ -181,29 +181,15 @@ Hal ini mengindikasikan bahwa potensi bottleneck lebih besar berada pada akses d
 
 1. Menghindari penggunaan `findAll()` untuk endpoint list bacaan.
 
-   Gunakan pagination agar aplikasi tidak mengambil seluruh data sekaligus.
-
-2. Menambahkan index database untuk kolom yang sering digunakan dalam query.
-
-   Kolom yang direkomendasikan:
-
+2. Menambahkan index database untuk kolom yang sering digunakan dalam query, seperti:
    ```text
    reading_id
    user_id
    user_id + reading_id
    ```
 
-3. Optimalkan endpoint admin questions.
-
-   Hindari query ganda seperti:
-
+3. Optimalkan endpoint admin questions dengan menghindari query ganda seperti:
    ```java
    existsById();
    findByReadingId();
    ```
-
-   Jika memungkinkan, gabungkan validasi dan query agar akses database lebih efisien.
-
-4. Jalankan profiling ulang setelah aplikasi warm-up.
-
-   Pastikan backend sudah stabil sebelum JMeter dijalankan, supaya hasil profiling tidak tercampur dengan proses startup Spring Boot.
